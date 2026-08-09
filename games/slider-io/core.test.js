@@ -6,3 +6,9 @@ test('collision ignores neck and catches body',()=>{const pts=Array.from({length
 test('AI reaches elite level for the final five',()=>{assert.equal(C.aiLevel(12),1);assert.equal(C.aiLevel(8),2);assert.equal(C.aiLevel(5),3);assert.equal(C.aiLevel(1),3)});
 test('bot roster stays between 24 and 32',()=>{for(let i=0;i<100;i++)assert.ok(C.botCount()>=24&&C.botCount()<=32)});
 test('giant rivals stay within requested limits',()=>{for(let i=0;i<100;i++){assert.ok(C.giantCount()>=1&&C.giantCount()<=3);assert.ok(C.giantScore()>=1000&&C.giantScore()<=3000)}});
+test('spatial grid only returns local items',()=>{const grid=C.makeGrid([{x:10,y:10,id:'near'},{x:900,y:900,id:'far'}],100);assert.deepEqual(C.nearby(grid,20,20,80).map(x=>x.id),['near'])});
+test('prediction leads a moving target',()=>assert.deepEqual(C.predict({x:10,y:20,a:0,speed:100},.5),{x:60,y:20}));
+test('danger turn chooses an escape side',()=>assert.notEqual(C.dangerTurn({x:0,y:0,a:0},[{x:100,y:20}]),0));
+test('black-hole pull grows inside its influence radius',()=>{assert.equal(C.holePull({x:0,y:0},{x:400,y:0},300).strength,0);const pull=C.holePull({x:0,y:0},{x:100,y:0},300);assert.ok(pull.x>0&&pull.strength>0)});
+test('wormhole teleport preserves identity score and body length',()=>{const snake={id:'you',score:321,x:10,y:20,points:[{x:10,y:20},{x:3,y:20}]},same=C.teleportSnake(snake,{x:500,y:600},1000);assert.equal(same.id,'you');assert.equal(same.score,321);assert.equal(same.points.length,2);assert.deepEqual(same.points[1],{x:493,y:600});assert.equal(same.warpUntil,3600)});
+test('safe wormhole exits avoid walls snakes and other holes',()=>{const snakes=[{x:500,y:500,alive:true}],holes=[{x:1500,y:1500}];assert.equal(C.safeExit({x:100,y:100},snakes,holes,2000),false);assert.equal(C.safeExit({x:600,y:600},snakes,holes,2000),false);assert.equal(C.safeExit({x:1000,y:1000},snakes,holes,2000),true)});

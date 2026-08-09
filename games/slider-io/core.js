@@ -10,5 +10,12 @@
   const botCount=()=>24+Math.floor(Math.random()*9);
   const giantCount=()=>1+Math.floor(Math.random()*3);
   const giantScore=()=>1000+Math.floor(Math.random()*2001);
-  return {TAU,clamp,dist2,angleDelta,lerpAngle,rank,collides,aiLevel,botCount,giantCount,giantScore};
+  const makeGrid=(items,size=180)=>{const cells=new Map();for(const item of items){const key=`${Math.floor(item.x/size)},${Math.floor(item.y/size)}`,cell=cells.get(key);if(cell)cell.push(item);else cells.set(key,[item])}return {size,cells}};
+  const nearby=(grid,x,y,radius)=>{const out=[],size=grid.size,minX=Math.floor((x-radius)/size),maxX=Math.floor((x+radius)/size),minY=Math.floor((y-radius)/size),maxY=Math.floor((y+radius)/size);for(let cy=minY;cy<=maxY;cy++)for(let cx=minX;cx<=maxX;cx++){const cell=grid.cells.get(`${cx},${cy}`);if(cell)out.push(...cell)}return out};
+  const predict=(target,seconds=.45)=>({x:target.x+Math.cos(target.a||0)*(target.speed||0)*seconds,y:target.y+Math.sin(target.a||0)*(target.speed||0)*seconds});
+  const dangerTurn=(snake,segments,lookAhead=145)=>{const fx=Math.cos(snake.a),fy=Math.sin(snake.a),probe={x:snake.x+fx*lookAhead,y:snake.y+fy*lookAhead};let left=0,right=0,danger=0;for(const p of segments){if(dist2(probe,p)>240*240)continue;danger++;const cross=fx*(p.y-snake.y)-fy*(p.x-snake.x);if(cross>0)left++;else right++}return danger?((left>right)?-1:1):0};
+  const holePull=(snake,hole,radius=300,power=235)=>{const dx=hole.x-snake.x,dy=hole.y-snake.y,d=Math.hypot(dx,dy);if(!d||d>=radius)return{x:0,y:0,strength:0};const strength=(1-d/radius)**2*power;return{x:dx/d*strength,y:dy/d*strength,strength}};
+  const teleportSnake=(snake,exit,now,cooldown=2600)=>{const dx=exit.x-snake.x,dy=exit.y-snake.y;snake.x=exit.x;snake.y=exit.y;snake.points=snake.points.map(p=>({x:p.x+dx,y:p.y+dy}));snake.warpUntil=now+cooldown;return snake};
+  const safeExit=(p,snakes,holes,world,ignoreHole)=>p.x>380&&p.y>380&&p.x<world-380&&p.y<world-380&&snakes.every(s=>!s.alive||dist2(p,s)>520*520)&&holes.every(h=>h===ignoreHole||dist2(p,h)>180*180);
+  return {TAU,clamp,dist2,angleDelta,lerpAngle,rank,collides,aiLevel,botCount,giantCount,giantScore,makeGrid,nearby,predict,dangerTurn,holePull,teleportSnake,safeExit};
 });

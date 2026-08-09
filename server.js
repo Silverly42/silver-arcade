@@ -1,13 +1,15 @@
-const http = require('node:http');
-const fs = require('node:fs');
-const path = require('node:path');
-const port = Number(process.env.PORT || 4173);
-const root = __dirname;
-const types = {'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json'};
-http.createServer((req,res)=>{
-  const clean = decodeURIComponent(req.url.split('?')[0]);
-  let file = path.join(root, clean === '/' ? 'index.html' : clean);
-  if (!file.startsWith(root)) { res.writeHead(403).end('Forbidden'); return; }
-  if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file,'index.html');
-  fs.readFile(file,(err,data)=>{ if(err){res.writeHead(404).end('Not found');return;} res.writeHead(200,{'Content-Type':types[path.extname(file)]||'application/octet-stream','Cache-Control':'no-cache'});res.end(data); });
-}).listen(port,()=>console.log(`Silver Arcade: http://localhost:${port}`));
+const http=require('node:http');
+const fs=require('node:fs');
+const path=require('node:path');
+const {WebSocketServer,WebSocket}=require('ws');
+const port=Number(process.env.PORT||4173),root=__dirname;
+const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json'};
+const rooms=new Map(),ROOM=/^[A-Z2-9]{6}$/;
+function staticRequest(req,res){let clean;try{clean=decodeURIComponent(new URL(req.url,'http://localhost').pathname)}catch{res.writeHead(400).end('Bad request');return}const relative=clean==='/'?'index.html':clean.replace(/^\/+/,''),file=path.resolve(root,relative);if(file!==root&&!file.startsWith(root+path.sep)){res.writeHead(403).end('Forbidden');return}let target=file;try{if(fs.statSync(target).isDirectory())target=path.join(target,'index.html')}catch{}fs.readFile(target,(err,data)=>{if(err){res.writeHead(404).end('Not found');return}res.writeHead(200,{'Content-Type':types[path.extname(target)]||'application/octet-stream','Cache-Control':'no-cache','X-Content-Type-Options':'nosniff'});res.end(data)})}
+const server=http.createServer(staticRequest),wss=new WebSocketServer({noServer:true,maxPayload:128*1024});
+function send(ws,data){if(ws?.readyState===WebSocket.OPEN)ws.send(JSON.stringify(data))}
+function reject(ws,message){send(ws,{type:'error',message});setTimeout(()=>ws.close(1008,message.slice(0,100)),20)}
+function rateOkay(ws){const now=Date.now();if(!ws.rate||now-ws.rate.start>1000)ws.rate={start:now,count:0};return ++ws.rate.count<=120}
+server.on('upgrade',(req,socket,head)=>{const url=new URL(req.url,'http://localhost');if(url.pathname!=='/slider-online'){socket.destroy();return}wss.handleUpgrade(req,socket,head,ws=>wss.emit('connection',ws,url))});
+wss.on('connection',(ws,url)=>{const roomCode=(url.searchParams.get('room')||'').toUpperCase(),role=url.searchParams.get('role');if(!ROOM.test(roomCode)||!['host','guest'].includes(role)){reject(ws,'Invalid room or role.');return}ws.roomCode=roomCode;ws.role=role;ws.on('message',raw=>{if(!rateOkay(ws)){reject(ws,'Too many messages.');return}let msg;try{msg=JSON.parse(raw.toString())}catch{return}const room=rooms.get(roomCode);if(!room)return;if(role==='host'&&['state','guest_dead'].includes(msg.type))send(room.guest,msg);else if(role==='guest'&&msg.type==='input'){const target=Number(msg.target);if(Number.isFinite(target))send(room.host,{type:'input',target:Math.max(-Math.PI*2,Math.min(Math.PI*2,target)),boost:!!msg.boost})}});ws.on('close',()=>{const room=rooms.get(roomCode);if(!room)return;if(role==='host'&&room.host===ws){send(room.guest,{type:'peer_left'});room.guest?.close(1001,'Host left');rooms.delete(roomCode)}else if(role==='guest'&&room.guest===ws){room.guest=null;send(room.host,{type:'peer_left'})}});if(role==='host'){if(rooms.has(roomCode)){reject(ws,'That room code is already in use.');return}rooms.set(roomCode,{host:ws,guest:null});send(ws,{type:'room_ready',room:roomCode});return}const room=rooms.get(roomCode);if(!room||room.host.readyState!==WebSocket.OPEN){reject(ws,'Match not found or no longer available.');return}if(room.guest?.readyState===WebSocket.OPEN){reject(ws,'This match already has its one online player slot occupied.');return}room.guest=ws;send(ws,{type:'join_accept',room:roomCode});send(room.host,{type:'guest_joined',name:'Online Slider'})});
+server.listen(port,()=>console.log(`Silver Arcade: http://localhost:${port}`));

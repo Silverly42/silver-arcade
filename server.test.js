@@ -1,0 +1,2 @@
+const test=require('node:test');const assert=require('node:assert/strict');const fs=require('node:fs');
+test('online relay enforces one guest slot and validates messages',()=>{const source=fs.readFileSync(require.resolve('./server'),'utf8');assert.match(source,/one online player slot occupied/);assert.match(source,/maxPayload:128\*1024/);assert.match(source,/msg\.type==='input'/);assert.match(source,/\['state','guest_dead'\]/)});

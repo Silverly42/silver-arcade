@@ -9,10 +9,13 @@
 </head>
 <body>
   <canvas id="game" aria-label="Slider.io game arena"></canvas>
+  <div id="warpFlash" aria-hidden="true"></div>
   <div id="hud" class="hidden">
     <div class="brand">SLIDER<span>.IO</span></div>
     <div class="stats"><b id="score">0</b><small>LENGTH</small><b id="rank">#1</b><small>RANK</small><b id="alive">0</b><small>PLAYERS LIVE</small></div>
     <div id="modeBadge">CLASSIC</div>
+    <div id="roomStatus">ROOM <b id="roomCode">SOLO</b></div>
+    <div class="build">BUILD <b id="buildHud"></b></div>
     <div id="killFeed" role="status" aria-live="polite"></div>
     <ol id="leaders"></ol>
     <canvas id="map" width="150" height="150" aria-label="Arena minimap"></canvas>
@@ -20,6 +23,7 @@
   </div>
   <section id="menu" class="panel">
     <div class="logo">SLIDER<span>.IO</span></div>
+    <div class="menuBuild">BUILD <b id="buildMenu"></b></div>
     <p class="tag">Eat light. Grow long. Own the grid.</p>
     <label class="sr-only" for="name">Player name</label>
     <input id="name" maxlength="16" autocomplete="nickname" placeholder="Your name">
@@ -29,6 +33,11 @@
       <button class="mode" data-mode="knockout"><b>KNOCKOUT</b><small>Last slider alive wins</small></button>
     </div>
     <button id="play">ENTER THE GRID</button>
+    <div class="online">
+      <button id="hostOnline" class="secondary">HOST ONLINE MATCH</button>
+      <div class="join"><input id="joinCode" maxlength="6" autocomplete="off" aria-label="Room code" placeholder="ROOM CODE"><button id="joinOnline" class="secondary">JOIN</button></div>
+      <p id="onlineMessage" role="status">One late-join online slot per hosted match.</p>
+    </div>
     <p class="help">Steer with mouse, touch, WASD or arrows<br>Hold to boost · P to pause · M to mute</p>
     <a href="../../">← Silver Arcade</a>
   </section>
@@ -37,6 +46,6 @@
     <div id="best">Best: 0</div><button id="again">SLIDE AGAIN</button><a href="../../">Back to arcade</a>
   </section>
   <section id="paused" class="panel compact hidden"><h1>PAUSED</h1><button id="resume">RESUME</button></section>
-  <script src="core.js"></script><script src="game.js"></script>
+  <script src="version.js"></script><script src="core.js"></script><script src="game.js"></script>
 </body>
 </html>
