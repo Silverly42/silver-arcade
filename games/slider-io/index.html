@@ -14,7 +14,7 @@
     <div class="brand">SLIDER<span>.IO</span></div>
     <div class="stats"><b id="score">0</b><small>LENGTH</small><b id="rank">#1</b><small>RANK</small><b id="alive">0</b><small>PLAYERS LIVE</small></div>
     <div id="modeBadge">CLASSIC</div>
-    <div id="roomStatus">ROOM <b id="roomCode">SOLO</b></div>
+    <div id="roomStatus" class="hidden">ROOM <b id="roomCode">SOLO</b></div>
     <div class="build">BUILD <b id="buildHud"></b></div>
     <div id="killFeed" role="status" aria-live="polite"></div>
     <ol id="leaders"></ol>
@@ -33,7 +33,7 @@
       <button class="mode" data-mode="knockout"><b>KNOCKOUT</b><small>Last slider alive wins</small></button>
     </div>
     <button id="play">ENTER THE GRID</button>
-    <div class="online">
+    <div id="onlinePanel" class="online hidden">
       <button id="hostOnline" class="secondary">HOST ONLINE MATCH</button>
       <div class="join"><input id="joinCode" maxlength="6" autocomplete="off" aria-label="Room code" placeholder="ROOM CODE"><button id="joinOnline" class="secondary">JOIN</button></div>
       <p id="onlineMessage" role="status">One late-join online slot per hosted match.</p>

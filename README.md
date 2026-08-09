@@ -12,7 +12,9 @@ Open `http://localhost:4173`. Run checks with `npm test` and create a static dep
 
 The Node server is required for online play because it provides the same-origin WebSocket relay. Static hosting (including a plain itch.io HTML upload) still supports the full solo/bot game, but needs a separately hosted relay before online rooms can work.
 
-## Online match
+## Online match (currently disabled)
+
+The online controls are hidden in build `1.2.0-beta.2` while multiplayer is on hold. The tested relay and client code remain dormant for later re-enabling; solo and bot play do not load or use an online connection.
 
 1. The host selects **Host Online Match** and starts playing immediately.
 2. Share the six-character room code shown in the HUD.
@@ -25,7 +27,7 @@ The host browser is authoritative for gameplay. The relay validates room codes a
 
 Food lookup and body collisions use spatial grids instead of repeated full-array scans. UI and network snapshots are throttled, particle counts and body history are bounded, and rendering culls off-screen objects. Elite final-five AI adds predictive pursuit, danger avoidance, boost timing, target selection, and trapping behavior.
 
-Four lightweight animated black holes act as wormholes. Their pull is visible, entry preserves the snake and score, paired exits are safety-checked, and a cooldown prevents immediate re-entry. Normal bots avoid accidental entry while elite bots can use a wormhole as a tactical shortcut. The menu and in-game HUD show the exact build identifier (`1.2.0-beta.1`).
+Four lightweight animated black holes act as wormholes. Their pull is visible, entry preserves the snake and score, paired exits are safety-checked, and a cooldown prevents immediate re-entry. Normal bots avoid accidental entry while elite bots can use a wormhole as a tactical shortcut. The menu and in-game HUD show the exact build identifier (`1.2.0-beta.2`).
 
 ## Controls
 
