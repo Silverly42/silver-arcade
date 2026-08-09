@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta name="theme-color" content="#080a14">
+  <title>Slider.io — Silver Arcade</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="game" aria-label="Slider.io game arena"></canvas>
+  <div id="hud" class="hidden">
+    <div class="brand">SLIDER<span>.IO</span></div>
+    <div class="stats"><b id="score">0</b><small>LENGTH</small><b id="rank">#1</b><small>RANK</small></div>
+    <ol id="leaders"></ol>
+    <canvas id="map" width="150" height="150" aria-label="Arena minimap"></canvas>
+    <button id="pauseBtn" aria-label="Pause game">Ⅱ</button>
+  </div>
+  <section id="menu" class="panel">
+    <div class="logo">SLIDER<span>.IO</span></div>
+    <p class="tag">Eat light. Grow long. Own the grid.</p>
+    <label class="sr-only" for="name">Player name</label>
+    <input id="name" maxlength="16" autocomplete="nickname" placeholder="Your name">
+    <div id="skins" class="skins" aria-label="Choose a skin"></div>
+    <button id="play">ENTER THE GRID</button>
+    <p class="help">Steer with mouse, touch, WASD or arrows<br>Hold to boost · P to pause · M to mute</p>
+    <a href="../../">← Silver Arcade</a>
+  </section>
+  <section id="gameover" class="panel hidden">
+    <div class="overline">SIGNAL LOST</div><h1 id="finalScore">0</h1><p>final length</p>
+    <div id="best">Best: 0</div><button id="again">SLIDE AGAIN</button><a href="../../">Back to arcade</a>
+  </section>
+  <section id="paused" class="panel compact hidden"><h1>PAUSED</h1><button id="resume">RESUME</button></section>
+  <script src="core.js"></script><script src="game.js"></script>
+</body>
+</html>

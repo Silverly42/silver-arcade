@@ -1,0 +1,10 @@
+{
+  "name": "silver-arcade",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test",
+    "build": "node build.js"
+  }
+}
