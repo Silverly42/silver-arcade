@@ -7,5 +7,8 @@
   const rank=(snakes,id)=>[...snakes].sort((a,b)=>b.score-a.score).findIndex(s=>s.id===id)+1;
   const collides=(head,segments,radius,skip=7)=>segments.slice(skip).some(p=>dist2(head,p)<radius*radius);
   const aiLevel=alive=>alive<=5?3:alive<=10?2:1;
-  return {TAU,clamp,dist2,angleDelta,lerpAngle,rank,collides,aiLevel};
+  const botCount=()=>24+Math.floor(Math.random()*9);
+  const giantCount=()=>1+Math.floor(Math.random()*3);
+  const giantScore=()=>1000+Math.floor(Math.random()*2001);
+  return {TAU,clamp,dist2,angleDelta,lerpAngle,rank,collides,aiLevel,botCount,giantCount,giantScore};
 });
