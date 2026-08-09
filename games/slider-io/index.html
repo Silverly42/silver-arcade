@@ -21,6 +21,7 @@
     <canvas id="map" width="150" height="150" aria-label="Arena minimap"></canvas>
     <button id="pauseBtn" aria-label="Pause game">Ⅱ</button>
     <button id="hooverBtn" aria-pressed="false" aria-label="Toggle food hoover">HOOVER OFF</button>
+    <button id="quitBtn" aria-label="Quit to menu">QUIT</button>
   </div>
   <section id="menu" class="panel">
     <div class="logo">SLIDER<span>.IO</span></div>
@@ -39,14 +40,14 @@
       <div class="join"><input id="joinCode" maxlength="6" autocomplete="off" aria-label="Room code" placeholder="ROOM CODE"><button id="joinOnline" class="secondary">JOIN</button></div>
       <p id="onlineMessage" role="status">One late-join online slot per hosted match.</p>
     </div>
-    <p class="help">Steer with mouse, touch, WASD or arrows<br>Hold to boost · H food hoover · P pause · M mute</p>
+    <p class="help">Steer with mouse, touch, WASD or arrows<br>Hold to boost · H hoover · P pause · Q quit · M mute</p>
     <a href="../../">← Silver Arcade</a>
   </section>
   <section id="gameover" class="panel hidden">
     <div id="resultLabel" class="overline">SIGNAL LOST</div><h1 id="finalScore">0</h1><p id="resultCaption">final length</p>
     <div id="best">Best: 0</div><button id="again">SLIDE AGAIN</button><a href="../../">Back to arcade</a>
   </section>
-  <section id="paused" class="panel compact hidden"><h1>PAUSED</h1><button id="resume">RESUME</button></section>
+  <section id="paused" class="panel compact hidden"><h1>PAUSED</h1><button id="resume">RESUME</button><button id="quitPaused" class="danger">QUIT TO MENU</button></section>
   <script src="version.js"></script><script src="core.js"></script><script src="game.js"></script>
 </body>
 </html>

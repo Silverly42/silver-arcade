@@ -29,7 +29,7 @@ Food lookup and body collisions use spatial grids instead of repeated full-array
 
 Four lightweight animated black holes act as wormholes. Their pull is visible, entry preserves the snake and score, paired exits are safety-checked, and a cooldown prevents immediate re-entry. Normal bots avoid accidental entry while elite bots can use a wormhole as a tactical shortcut. The menu and in-game HUD show the exact build identifier (`1.2.0-beta.3`).
 
-End-game performance is protected by a hard world-food budget, sampled death drops that preserve their score value, a cached food index refreshed every four frames, direct body-array truncation, and less frequent HUD/leaderboard work. Build `1.2.0-beta.4` adds an optional Food Hoover: use the HUD button or `H` to pull nearby pellets toward the player.
+End-game performance is protected by a hard world-food budget, sampled death drops that preserve their score value, a cached food index refreshed every four frames, direct body-array truncation, and less frequent HUD/leaderboard work. Build `1.2.0-beta.5` includes the optional Food Hoover and a safe Quit to Menu action in the HUD, pause screen, and `Q` shortcut.
 
 ## Controls
 
