@@ -17,5 +17,7 @@
   const holePull=(snake,hole,radius=300,power=235)=>{const dx=hole.x-snake.x,dy=hole.y-snake.y,d=Math.hypot(dx,dy);if(!d||d>=radius)return{x:0,y:0,strength:0};const strength=(1-d/radius)**2*power;return{x:dx/d*strength,y:dy/d*strength,strength}};
   const teleportSnake=(snake,exit,now,cooldown=2600)=>{const dx=exit.x-snake.x,dy=exit.y-snake.y;snake.x=exit.x;snake.y=exit.y;snake.points=snake.points.map(p=>({x:p.x+dx,y:p.y+dy}));snake.warpUntil=now+cooldown;return snake};
   const safeExit=(p,snakes,holes,world,ignoreHole)=>p.x>380&&p.y>380&&p.x<world-380&&p.y<world-380&&snakes.every(s=>!s.alive||dist2(p,s)>520*520)&&holes.every(h=>h===ignoreHole||dist2(p,h)>180*180);
-  return {TAU,clamp,dist2,angleDelta,lerpAngle,rank,collides,aiLevel,botCount,giantCount,giantScore,makeGrid,nearby,predict,dangerTurn,holePull,teleportSnake,safeExit};
+  const sampleBody=(points,max=120)=>{if(points.length<=max)return points.slice();const step=points.length/max,out=[];for(let i=0;i<max;i++)out.push(points[Math.floor(i*step)]);return out};
+  const foodPull=(food,player,radius=280,power=520)=>{const dx=player.x-food.x,dy=player.y-food.y,d=Math.hypot(dx,dy);if(!d||d>=radius)return{x:0,y:0,strength:0};const strength=(1-d/radius)*power;return{x:dx/d*strength,y:dy/d*strength,strength}};
+  return {TAU,clamp,dist2,angleDelta,lerpAngle,rank,collides,aiLevel,botCount,giantCount,giantScore,makeGrid,nearby,predict,dangerTurn,holePull,teleportSnake,safeExit,sampleBody,foodPull};
 });
