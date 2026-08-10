@@ -117,7 +117,8 @@ test("food ball size reflects value and remains readable as the player grows", (
 test("slider body grows thicker as its score and length increase", () => {
   assert.ok(C.bodyWidth(300) > C.bodyWidth(34));
   assert.ok(C.bodyWidth(1200) > C.bodyWidth(300));
-  assert.ok(C.bodyWidth(10000) <= 36);
+  assert.ok(C.bodyWidth(10000) <= 64);
+  assert.ok(C.bodyWidth(3000) > 50);
 });
 test("AI energy targeting prefers valuable nearby food without doubling back", () => {
   const snake = { x: 0, y: 0, a: 0 };

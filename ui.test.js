@@ -6,7 +6,7 @@ const root = path.join(__dirname, "games/slider-io");
 test("build identifier is visible and multiplayer controls are disabled", () => {
   const version = fs.readFileSync(path.join(root, "version.js"), "utf8"),
     html = fs.readFileSync(path.join(root, "index.html"), "utf8");
-  assert.match(version, /SLIDER_BUILD='1\.3\.0'/);
+  assert.match(version, /SLIDER_BUILD='1\.3\.1'/);
   assert.match(version, /SLIDER_ONLINE=false/);
   assert.match(html, /id="onlinePanel" class="online hidden"/);
   assert.match(html, /id="buildHud"/);
@@ -51,7 +51,25 @@ test("food hoover uses E and death drops retain natural orb size", () => {
     html = fs.readFileSync(path.join(root, "index.html"), "utf8");
   assert.match(game, /e\.key === "e" \|\| e\.key === "E"/);
   assert.doesNotMatch(game, /e\.key === "h" \|\| e\.key === "H"/);
-  assert.match(game, /addFood\(p\.x, p\.y, dropValue, s\.color, 1\)/);
+  assert.match(game, /addFood\(p\.x, p\.y, dropValue, s\.color, 1, "death"\)/);
   assert.match(game, /f\.visualValue \?\? f\.value/);
   assert.match(html, /E: 5-second hoover/);
+});
+test("bots release awkward orb targets and death drops survive a full arena", () => {
+  const game = fs.readFileSync(path.join(root, "game.js"), "utf8");
+  assert.match(game, /distance < 80 && turnNeeded > 1\.05/);
+  assert.match(game, /f\.kind !== "death"/);
+  assert.match(game, /f\.kind === "death" \? 10 : 6/);
+  assert.match(game, /"orb goblin"/);
+  assert.match(game, /"allat"/);
+});
+test("Slider 1.3.1 adds anti-circle recovery colours victory sound and giant growth", () => {
+  const game = fs.readFileSync(path.join(root, "game.js"), "utf8"),
+    core = fs.readFileSync(path.join(root, "core.js"), "utf8");
+  assert.match(game, /moved < 85/);
+  assert.match(game, /s\.breakUntil = now \+ 2400/);
+  assert.match(game, /function victoryTone\(\)/);
+  assert.match(game, /"#ee72ff"/);
+  assert.match(game, /Math\.min\(1200, s\.score/);
+  assert.match(core, /0\.85, 14, 64/);
 });

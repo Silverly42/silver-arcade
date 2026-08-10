@@ -132,7 +132,7 @@
       11,
     );
   const bodyWidth = (score = 34) =>
-    clamp(11 + Math.sqrt(Math.max(0, score)) * 0.58, 14, 36);
+    clamp(11 + Math.sqrt(Math.max(0, score)) * 0.85, 14, 64);
   const energyTarget = (snake, foods, radius = 1200) => {
     let best = null,
       bestUtility = -Infinity;

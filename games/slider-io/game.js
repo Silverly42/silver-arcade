@@ -9,40 +9,22 @@
     WORLD = 6500,
     FOOD_TARGET = 1500,
     FOOD_MAX = 2100,
-    skins = ["#62f6d0", "#ff5e8a", "#ffd25f", "#7b73ff", "#58b7ff", "#ff8d4d"];
+    skins = [
+      "#62f6d0", "#ff5e8a", "#ffd25f", "#7b73ff", "#58b7ff", "#ff8d4d",
+      "#ee72ff", "#8cff66", "#ff4141", "#4de1ff", "#f3f3f3", "#b88a5a",
+      "#ff9ee4", "#84a1ff", "#d7ff45", "#ffb44d",
+    ];
   const names = [
-    "Vortex",
-    "Nova",
-    "Pixel",
-    "Glitch",
-    "Comet",
-    "Hex",
-    "Orbit",
-    "Dash",
-    "Echo",
-    "Flux",
-    "Ziggy",
-    "Quasar",
-    "Bolt",
-    "Ion",
-    "Prism",
-    "Rift",
-    "Jinx",
-    "Cosmo",
-    "Apex",
-    "Cipher",
-    "Fang",
-    "Neon",
-    "Pulse",
-    "Razor",
-    "Sonic",
-    "Titan",
-    "Vector",
-    "Wraith",
-    "Zero",
-    "Blitz",
-    "Chrome",
-    "Havoc",
+    "skibidi", "bro really slid", "nah id win", "goober", "orb goblin",
+    "low taper fade", "unc", "locked in", "skill issue", "touch grass",
+    "absolute cinema", "ayo", "no thoughts", "bingus", "big chungus",
+    "sigma noodle", "certified yapper", "let him cook", "npc energy",
+    "silly goose", "bruh moment", "ratio", "sus slider", "bonk",
+    "yeet", "glorp", "womp womp", "chonky", "keyboard warrior",
+    "main character", "delulu", "allat", "comet enjoyer", "orbmaxxer",
+    "mild panic", "lag is canon", "free wifi", "mom said dinner",
+    "definitely human", "404 name", "snacc", "zoomies", "tiny menace",
+    "plot armor", "real", "based worm", "no cap", "send help",
   ];
   let dpr = 1,
     w = 0,
@@ -219,6 +201,11 @@
       targetFood: null,
       aiTarget: null,
       feedCommit: 0,
+      navCheck: 1.5,
+      lastNavX: x,
+      lastNavY: y,
+      breakUntil: 0,
+      breakAngle: a,
       warpUntil: 0,
       powers: { speed: 0, hoover: 0, invisible: 0 },
     };
@@ -229,6 +216,7 @@
     value = 1,
     color = skins[(Math.random() * skins.length) | 0],
     visualValue = value,
+    kind = "natural",
   ) {
     if (foods.length >= FOOD_MAX) return false;
     foods.push({
@@ -239,6 +227,7 @@
       color,
       pulse: Math.random() * C.TAU,
       eaten: false,
+      kind,
     });
     return true;
   }
@@ -363,7 +352,7 @@
         margin = giant ? 1700 : 500,
         s = makeSnake(
           "b" + i,
-          names[i],
+          names[i % names.length],
           skins[(i + 1) % skins.length],
           margin + Math.random() * (WORLD - margin * 2),
           margin + Math.random() * (WORLD - margin * 2),
@@ -552,6 +541,22 @@
       return;
     }
     const level = C.aiLevel(alive.length, difficulty);
+    const now = performance.now();
+    s.navCheck -= dt;
+    if (s.navCheck <= 0) {
+      const moved = Math.hypot(s.x - s.lastNavX, s.y - s.lastNavY);
+      if (moved < 85) {
+        s.breakUntil = now + 2400;
+        s.breakAngle =
+          Math.atan2(WORLD / 2 - s.y, WORLD / 2 - s.x) +
+          (Math.random() - 0.5) * 1.4;
+        s.targetFood = null;
+        s.feedCommit = 0;
+      }
+      s.lastNavX = s.x;
+      s.lastNavY = s.y;
+      s.navCheck = 1.5;
+    }
     s.think -= dt;
     if (s.think > 0) return;
     s.think =
@@ -562,6 +567,11 @@
     if (escape !== null) {
       s.target = escape;
       s.boost = level === 3 && s.score > 48;
+      return;
+    }
+    if (s.breakUntil > now) {
+      s.target = s.breakAngle;
+      s.boost = false;
       return;
     }
     const near = closestHole(s);
@@ -619,11 +629,23 @@
       s.feedCommit <= 0
     ) {
       s.targetFood = closestFood(s, foodRadius);
-      s.feedCommit = 4 + Math.random() * 2;
+      s.feedCommit = 1.2 + Math.random() * 1.4;
     }
     s.feedCommit -= s.think;
-    if (s.targetFood)
-      s.target = Math.atan2(s.targetFood.y - s.y, s.targetFood.x - s.x);
+    if (s.targetFood) {
+      const dx = s.targetFood.x - s.x,
+        dy = s.targetFood.y - s.y,
+        distance = Math.hypot(dx, dy),
+        foodAngle = Math.atan2(dy, dx),
+        turnNeeded = Math.abs(C.angleDelta(s.a, foodAngle));
+      // Don't endlessly orbit a single close orb that is behind the head.
+      // Release it and choose a reachable target on the next think tick.
+      if (distance < 80 && turnNeeded > 1.05) {
+        s.targetFood = null;
+        s.feedCommit = 0;
+        s.target = s.a + (C.angleDelta(s.a, foodAngle) > 0 ? 0.55 : -0.55);
+      } else s.target = foodAngle;
+    }
     const edge = 300 + level * 45;
     if (
       s.x < edge ||
@@ -656,24 +678,38 @@
   }
   function showKill(name) {
     activateHoover(10, true);
+    victoryTone();
     const feed = $("#killFeed"),
       item = document.createElement("div");
     item.textContent = `YOU KNOCKED OUT ${name} · HOOVER +10S`;
     feed.prepend(item);
     setTimeout(() => item.remove(), 2200);
   }
+  function victoryTone() {
+    [620, 780, 940, 1240].forEach((frequency, i) =>
+      setTimeout(() => tone(frequency, 0.12), i * 85),
+    );
+  }
   function kill(s, killer = null) {
     if (!s.alive) return;
     s.alive = false;
     if (killer === player && s !== player) showKill(s.name);
-    const drops = C.sampleBody(
-        s.points.slice(3),
-        Math.min(120, FOOD_MAX - foods.length),
-      ),
+    const wantedDrops = Math.min(120, Math.max(1, s.points.length - 3));
+    // Death food matters more than ambient food. Make room for it so a busy
+    // insane-mode arena never silently swallows a defeated player's drops.
+    const slotsNeeded = Math.max(0, foods.length + wantedDrops - FOOD_MAX);
+    if (slotsNeeded) {
+      let removed = 0;
+      foods = foods.filter((f) =>
+        f.kind !== "death" && removed < slotsNeeded ? (removed++, false) : true,
+      );
+    }
+    const drops = C.sampleBody(s.points.slice(3), wantedDrops),
       dropValue = drops.length
         ? Math.max(2, s.points.length / drops.length)
         : 0;
-    for (const p of drops) addFood(p.x, p.y, dropValue, s.color, 1);
+    for (const p of drops) addFood(p.x, p.y, dropValue, s.color, 1, "death");
+    foodDirty = true;
     for (let i = 0; i < 25 && particles.length < 500; i++)
       particles.push({
         x: s.x,
@@ -696,8 +732,12 @@
       }, 1800);
   }
   function collectFood(s) {
-    for (const f of C.nearby(foodGrid, s.x, s.y, 25)) {
-      if (f.eaten || C.dist2(s, f) >= 420) continue;
+    const bodyRadius = C.bodyWidth(s.score) * 0.55;
+    for (const f of C.nearby(foodGrid, s.x, s.y, bodyRadius + 16)) {
+      // Slightly forgiving pickup on player drops stops bots tracing tiny
+      // circles around an orb they are visually touching.
+      const pickupRadius = bodyRadius + (f.kind === "death" ? 10 : 6);
+      if (f.eaten || C.dist2(s, f) >= pickupRadius * pickupRadius) continue;
       f.eaten = true;
       foodDirty = true;
       s.score += f.value;
@@ -754,7 +794,7 @@
       s.x = C.clamp(s.x, 10, WORLD - 10);
       s.y = C.clamp(s.y, 10, WORLD - 10);
       s.points.unshift({ x: s.x, y: s.y });
-      const max = Math.max(28, Math.min(700, s.score | 0));
+      const max = Math.max(28, Math.min(1200, s.score | 0));
       if (s.points.length > max) s.points.length = max;
       if (boost && !freeBoost && Math.random() < dt * 16) {
         s.score -= 0.12;
@@ -791,7 +831,7 @@
     camera.x += (player.x - camera.x) * Math.min(1, dt * 5);
     camera.y += (player.y - camera.y) * Math.min(1, dt * 5);
     camera.zoom +=
-      (C.clamp(1.14 - player.score / 900, 0.72, 1) - camera.zoom) * dt * 2;
+      (C.clamp(1.14 - player.score / 1250, 0.55, 1) - camera.zoom) * dt * 2;
     if (now - uiClock > 280) {
       uiClock = now;
       updateHud();
@@ -1233,13 +1273,14 @@
         }));
     const snapshotFoods = C.nearby(foodGrid, guest.x, guest.y, 1350)
       .filter((f) => !f.eaten)
-      .map(({ x, y, value, visualValue, color, pulse }) => ({
+      .map(({ x, y, value, visualValue, color, pulse, kind }) => ({
         x,
         y,
         value,
         visualValue,
         color,
         pulse,
+        kind,
       }));
     sendHost({
       type: "state",
@@ -1274,7 +1315,7 @@
     camera.x += (player.x - camera.x) * Math.min(1, dt * 7);
     camera.y += (player.y - camera.y) * Math.min(1, dt * 7);
     camera.zoom +=
-      (C.clamp(1.14 - player.score / 900, 0.72, 1) - camera.zoom) * dt * 2;
+      (C.clamp(1.14 - player.score / 1250, 0.55, 1) - camera.zoom) * dt * 2;
     let dx = pointer.x - w / 2,
       dy = pointer.y - h / 2;
     if (keys.ArrowLeft || keys.a) dx = -200;
