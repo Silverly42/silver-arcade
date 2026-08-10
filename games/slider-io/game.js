@@ -7,8 +7,8 @@
     mctx = map.getContext("2d");
   const $ = (s) => document.querySelector(s),
     WORLD = 6500,
-    FOOD_TARGET = 900,
-    FOOD_MAX = 1250,
+    FOOD_TARGET = 1500,
+    FOOD_MAX = 2100,
     skins = ["#62f6d0", "#ff5e8a", "#ffd25f", "#7b73ff", "#58b7ff", "#ff8d4d"];
   const names = [
     "Vortex",
@@ -619,17 +619,20 @@
       s.feedCommit <= 0
     ) {
       s.targetFood = closestFood(s, foodRadius);
-      s.feedCommit = 0.7 + Math.random() * 0.7;
+      s.feedCommit = 4 + Math.random() * 2;
     }
     s.feedCommit -= s.think;
     if (s.targetFood)
       s.target = Math.atan2(s.targetFood.y - s.y, s.targetFood.x - s.x);
     const edge = 300 + level * 45;
-    if (s.x < edge) s.target = 0;
-    if (s.x > WORLD - edge) s.target = Math.PI;
-    if (s.y < edge) s.target = Math.PI / 2;
-    if (s.y > WORLD - edge) s.target = -Math.PI / 2;
-    s.target += (Math.random() - 0.5) * (0.16 / level);
+    if (
+      s.x < edge ||
+      s.x > WORLD - edge ||
+      s.y < edge ||
+      s.y > WORLD - edge
+    )
+      s.target = Math.atan2(WORLD / 2 - s.y, WORLD / 2 - s.x);
+    s.target += (Math.random() - 0.5) * (0.06 / level);
     s.boost = false;
   }
   function finish(won = false) {
@@ -721,9 +724,9 @@
     }
   }
   function hitBody(s) {
-    for (const p of C.nearby(segmentGrid, s.x, s.y, 20 + s.score * 0.005)) {
+    const radius = C.bodyWidth(s.score) * 0.72;
+    for (const p of C.nearby(segmentGrid, s.x, s.y, radius + 8)) {
       if (p.owner === s || !p.owner.alive) continue;
-      const radius = 10 + s.score * 0.005;
       if (C.dist2(s, p) < radius * radius) return p.owner;
     }
     return null;
@@ -1001,7 +1004,7 @@
   }
   function drawSnake(s, b) {
     if (s.powers?.invisible > 0) ctx.globalAlpha = 0.16;
-    const width = 12 + Math.min(s.score, 300) * 0.018;
+    const width = C.bodyWidth(s.score);
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     ctx.beginPath();

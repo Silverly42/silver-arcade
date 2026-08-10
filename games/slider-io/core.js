@@ -131,6 +131,8 @@
       3.4,
       11,
     );
+  const bodyWidth = (score = 34) =>
+    clamp(11 + Math.sqrt(Math.max(0, score)) * 0.58, 14, 36);
   const energyTarget = (snake, foods, radius = 1200) => {
     let best = null,
       bestUtility = -Infinity;
@@ -171,6 +173,7 @@
     sampleBody,
     foodPull,
     foodRadius,
+    bodyWidth,
     energyTarget,
   };
 });
