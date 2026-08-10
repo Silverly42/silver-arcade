@@ -53,6 +53,7 @@
     foods = [],
     particles = [],
     blackHoles = [],
+    powerUps = [],
     warpEffects = [],
     pointer = { x: 0, y: 0, down: false },
     keys = {},
@@ -219,6 +220,7 @@
       aiTarget: null,
       feedCommit: 0,
       warpUntil: 0,
+      powers: { speed: 0, hoover: 0, invisible: 0 },
     };
   }
   function addFood(
@@ -239,6 +241,46 @@
       eaten: false,
     });
     return true;
+  }
+  const powerTypes = {
+    speed: { label: "FREE BOOST", color: "#ffd25f", symbol: "⚡" },
+    hoover: { label: "MEGA HOOVER", color: "#62f6d0", symbol: "◎" },
+    invisible: { label: "INVISIBLE", color: "#b98cff", symbol: "◌" },
+  };
+  function spawnPowerUp(type) {
+    const margin = 500;
+    powerUps.push({
+      type: type || Object.keys(powerTypes)[(Math.random() * 3) | 0],
+      x: margin + Math.random() * (WORLD - margin * 2),
+      y: margin + Math.random() * (WORLD - margin * 2),
+      pulse: Math.random() * C.TAU,
+    });
+  }
+  function activatePower(type) {
+    player.powers[type] = 30;
+    if (type === "hoover") activateHoover(30, true);
+    const info = powerTypes[type];
+    showPowerMessage(`${info.symbol} ${info.label} · 30 SECONDS`);
+    tone(type === "speed" ? 820 : type === "hoover" ? 640 : 420, 0.14);
+  }
+  function showPowerMessage(text) {
+    const item = document.createElement("div");
+    item.textContent = text;
+    $("#killFeed").prepend(item);
+    setTimeout(() => item.remove(), 2600);
+  }
+  function collectPowerUps() {
+    for (let i = powerUps.length - 1; i >= 0; i--) {
+      if (C.dist2(player, powerUps[i]) > 34 * 34) continue;
+      activatePower(powerUps[i].type);
+      powerUps.splice(i, 1);
+      setTimeout(() => state === "playing" && spawnPowerUp(), 9000);
+    }
+  }
+  function updatePowers(dt) {
+    if (!player?.powers) return;
+    for (const type of Object.keys(player.powers))
+      player.powers[type] = Math.max(0, player.powers[type] - dt);
   }
   function spawnBlackHoles() {
     const holes = [];
@@ -298,10 +340,13 @@
     particles = [];
     snakes = [];
     warpEffects = [];
+    powerUps = [];
     blackHoles = spawnBlackHoles();
     frameNo = 0;
     foodDirty = false;
     for (let i = 0; i < FOOD_TARGET; i++) addFood();
+    for (const type of Object.keys(powerTypes)) spawnPowerUp(type);
+    for (let i = 0; i < 3; i++) spawnPowerUp();
     player = makeSnake(
       "you",
       localStorage.sliderName,
@@ -365,6 +410,7 @@
       bestValue = -Infinity;
     for (const rival of alive) {
       if (rival === s) continue;
+      if (rival.powers?.invisible > 0) continue;
       const d = Math.sqrt(C.dist2(s, rival)),
         sizeAdvantage = s.score / (rival.score || 1),
         value =
@@ -495,7 +541,9 @@
       if (keys.ArrowUp || keys.w) dy = -200;
       if (keys.ArrowDown || keys.s) dy = 200;
       if (dx || dy) s.target = Math.atan2(dy, dx);
-      s.boost = (pointer.down || keys[" "] || keys.Shift) && s.score > 38;
+      s.boost =
+        (pointer.down || keys[" "] || keys.Shift) &&
+        (s.score > 38 || s.powers.speed > 0);
       return;
     }
     if (s.id === "guest") {
@@ -694,8 +742,9 @@
         level = s.isBot ? C.aiLevel(alive.length, difficulty) : 1,
         turn = baseTurn * (s.isBot ? 1 + (level - 1) * 0.24 : 1.65);
       s.a = C.lerpAngle(s.a, s.target, turn * dt);
-      const boost = s.boost && s.score > 38;
-      s.speed = 150 + (boost ? 100 : 0);
+      const freeBoost = s === player && s.powers.speed > 0,
+        boost = s.boost && (s.score > 38 || freeBoost);
+      s.speed = 150 + (boost ? (freeBoost ? 135 : 100) : 0);
       s.x += Math.cos(s.a) * s.speed * dt;
       s.y += Math.sin(s.a) * s.speed * dt;
       applyBlackHoles(s, dt, now);
@@ -704,13 +753,14 @@
       s.points.unshift({ x: s.x, y: s.y });
       const max = Math.max(28, Math.min(700, s.score | 0));
       if (s.points.length > max) s.points.length = max;
-      if (boost && Math.random() < dt * 16) {
+      if (boost && !freeBoost && Math.random() < dt * 16) {
         s.score -= 0.12;
         const tail = s.points[s.points.length - 1];
         if (tail) addFood(tail.x, tail.y, 0.25, s.color);
       }
       if (s === player && hoover) applyFoodHoover(s, dt);
       collectFood(s);
+      if (s === player) collectPowerUps();
       const killer = hitBody(s);
       if (killer) kill(s, killer);
       else if (s.x <= 11 || s.x >= WORLD - 11 || s.y <= 11 || s.y >= WORLD - 11)
@@ -721,6 +771,7 @@
       foodDirty = false;
     }
     while (foods.length < FOOD_TARGET) addFood();
+    updatePowers(dt);
     for (const p of particles) {
       p.x += p.vx * dt;
       p.y += p.vy * dt;
@@ -760,6 +811,13 @@
       ? "FINAL 5 · ELITE AI"
       : `${gameMode === "knockout" ? "KNOCKOUT" : "CLASSIC"} · ${difficulty.toUpperCase()}`;
     renderLeaders();
+    $("#powerTimers").innerHTML = Object.entries(player.powers)
+      .filter(([, seconds]) => seconds > 0)
+      .map(([type, seconds]) => {
+        const info = powerTypes[type];
+        return `<span style="color:${info.color}">${info.symbol} ${info.label} ${Math.ceil(seconds)}S</span>`;
+      })
+      .join("");
   }
   function worldBounds(pad = 100) {
     return {
@@ -823,6 +881,7 @@
     ctx.lineWidth = 12;
     ctx.strokeRect(0, 0, WORLD, WORLD);
     drawBlackHoles(b);
+    drawPowerUps(b);
     ctx.globalCompositeOperation = "lighter";
     const visibleFoods =
       state === "guest"
@@ -878,6 +937,33 @@
     ctx.restore();
     if (frameNo % 3 === 0 || state !== "playing") drawMap();
   }
+  function drawPowerUps(b) {
+    const pulseTime = performance.now() * 0.004;
+    for (const p of powerUps) {
+      if (p.x < b.left || p.x > b.right || p.y < b.top || p.y > b.bottom)
+        continue;
+      const info = powerTypes[p.type],
+        radius = 15 + Math.sin(pulseTime + p.pulse) * 2;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.fillStyle = "#080b17";
+      ctx.strokeStyle = info.color;
+      ctx.shadowColor = info.color;
+      ctx.shadowBlur = 20;
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(0, 0, radius, 0, C.TAU);
+      ctx.fill();
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = info.color;
+      ctx.font = "900 17px system-ui";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(info.symbol, 0, 1);
+      ctx.restore();
+    }
+  }
   function drawBlackHoles(b) {
     const now = performance.now() * 0.0025;
     for (const h of blackHoles) {
@@ -914,6 +1000,7 @@
     }
   }
   function drawSnake(s, b) {
+    if (s.powers?.invisible > 0) ctx.globalAlpha = 0.16;
     const width = 12 + Math.min(s.score, 300) * 0.018;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
@@ -955,7 +1042,10 @@
     ctx.lineWidth = 2;
     ctx.stroke();
     ctx.setLineDash([]);
-    if (s.x < b.left || s.x > b.right || s.y < b.top || s.y > b.bottom) return;
+    if (s.x < b.left || s.x > b.right || s.y < b.top || s.y > b.bottom) {
+      ctx.globalAlpha = 1;
+      return;
+    }
     const nx = -Math.sin(s.a),
       ny = Math.cos(s.a),
       fx = Math.cos(s.a) * 4,
@@ -986,6 +1076,7 @@
     ctx.font = "600 12px system-ui";
     ctx.textAlign = "center";
     ctx.fillText(s.name, s.x, s.y - 18);
+    ctx.globalAlpha = 1;
   }
   function renderLeaders() {
     const top = [...alive].sort((a, b) => b.score - a.score).slice(0, 8);

@@ -6,7 +6,7 @@ const root = path.join(__dirname, "games/slider-io");
 test("build identifier is visible and multiplayer controls are disabled", () => {
   const version = fs.readFileSync(path.join(root, "version.js"), "utf8"),
     html = fs.readFileSync(path.join(root, "index.html"), "utf8");
-  assert.match(version, /SLIDER_BUILD='1\.2\.0-beta\.12'/);
+  assert.match(version, /SLIDER_BUILD='1\.2\.0-beta\.13'/);
   assert.match(version, /SLIDER_ONLINE=false/);
   assert.match(html, /id="onlinePanel" class="online hidden"/);
   assert.match(html, /id="buildHud"/);
@@ -21,6 +21,17 @@ test("build identifier is visible and multiplayer controls are disabled", () => 
   assert.match(html, /data-difficulty="medium"/);
   assert.match(html, /data-difficulty="hard"/);
   assert.match(html, /data-difficulty="insane"/);
+});
+test("thirty-second power pickups provide boost hoover and invisibility", () => {
+  const game = fs.readFileSync(path.join(root, "game.js"), "utf8"),
+    html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+  assert.match(game, /speed: \{ label: "FREE BOOST"/);
+  assert.match(game, /hoover: \{ label: "MEGA HOOVER"/);
+  assert.match(game, /invisible: \{ label: "INVISIBLE"/);
+  assert.match(game, /player\.powers\[type\] = 30/);
+  assert.match(game, /activateHoover\(30, true\)/);
+  assert.match(game, /boost && !freeBoost/);
+  assert.match(html, /id="powerTimers"/);
 });
 test("player knockouts award ten seconds of food hoover", () => {
   const game = fs.readFileSync(path.join(root, "game.js"), "utf8");
