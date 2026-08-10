@@ -73,6 +73,7 @@
     uiClock = 0,
     frameNo = 0;
   let foodDirty = false;
+  const foodSprites = new Map();
   const net = {
     role: "solo",
     ws: null,
@@ -128,7 +129,9 @@
   }
   updateHooverButton();
   function resize() {
-    dpr = Math.min(devicePixelRatio || 1, 2);
+    // A 2x full-screen canvas is four times the pixels. Capping it keeps the
+    // game smooth on high-DPI phones/laptops with almost no visible loss.
+    dpr = Math.min(devicePixelRatio || 1, 1.5);
     w = innerWidth;
     h = innerHeight;
     canvas.width = w * dpr;
@@ -758,6 +761,35 @@
       bottom: camera.y + h / camera.zoom / 2 + pad,
     };
   }
+  function foodSprite(color, radius) {
+    const bucket = Math.round(radius * 2) / 2,
+      key = `${color}:${bucket}`;
+    let sprite = foodSprites.get(key);
+    if (sprite) return sprite;
+    const glow = 5,
+      size = Math.ceil((bucket + glow) * 2),
+      center = size / 2,
+      surface = document.createElement("canvas"),
+      sctx = surface.getContext("2d");
+    surface.width = surface.height = size;
+    const gradient = sctx.createRadialGradient(
+      center,
+      center,
+      Math.max(0, bucket * 0.35),
+      center,
+      center,
+      bucket + glow,
+    );
+    gradient.addColorStop(0, "#ffffff");
+    gradient.addColorStop(0.3, color);
+    gradient.addColorStop(Math.min(0.95, bucket / (bucket + glow)), color);
+    gradient.addColorStop(1, "transparent");
+    sctx.fillStyle = gradient;
+    sctx.fillRect(0, 0, size, size);
+    sprite = { surface, size };
+    foodSprites.set(key, sprite);
+    return sprite;
+  }
   function draw() {
     ctx.clearRect(0, 0, w, h);
     ctx.fillStyle = "#070914";
@@ -793,7 +825,7 @@
             camera.y,
             (Math.max(w, h) / camera.zoom) * 0.8 + 150,
           );
-    const foodBatches = new Map();
+    const pulseTime = performance.now() * 0.004;
     for (const f of visibleFoods) {
       if (
         f.eaten ||
@@ -805,21 +837,13 @@
         continue;
       const r =
         C.foodRadius(f.visualValue ?? f.value, camera.zoom) +
-        Math.sin(performance.now() * 0.004 + f.pulse) * 0.65;
-      const batch = foodBatches.get(f.color) || [];
-      batch.push({ x: f.x, y: f.y, r });
-      foodBatches.set(f.color, batch);
-    }
-    for (const [color, batch] of foodBatches) {
-      ctx.fillStyle = color;
-      ctx.shadowColor = color;
-      ctx.shadowBlur = 8;
-      ctx.beginPath();
-      for (const f of batch) {
-        ctx.moveTo(f.x + f.r, f.y);
-        ctx.arc(f.x, f.y, f.r, 0, C.TAU);
-      }
-      ctx.fill();
+        Math.sin(pulseTime + f.pulse) * 0.45;
+      const sprite = foodSprite(f.color, r);
+      ctx.drawImage(
+        sprite.surface,
+        f.x - sprite.size / 2,
+        f.y - sprite.size / 2,
+      );
     }
     ctx.globalCompositeOperation = "source-over";
     ctx.shadowBlur = 0;
@@ -844,7 +868,7 @@
     }
     ctx.globalAlpha = 1;
     ctx.restore();
-    drawMap();
+    if (frameNo % 3 === 0 || state !== "playing") drawMap();
   }
   function drawBlackHoles(b) {
     const now = performance.now() * 0.0025;
@@ -908,11 +932,16 @@
     ctx.lineWidth = width + 6;
     ctx.stroke();
     ctx.strokeStyle = s.color;
-    ctx.shadowColor = s.color;
-    ctx.shadowBlur = s.boost ? 18 : 7;
+    // Blurring every long body path is very costly. A wider translucent pass
+    // gives boosted snakes a glow without forcing a full-canvas blur.
+    if (s.boost) {
+      ctx.globalAlpha = 0.24;
+      ctx.lineWidth = width + 10;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
     ctx.lineWidth = width;
     ctx.stroke();
-    ctx.shadowBlur = 0;
     ctx.setLineDash([2, 13]);
     ctx.strokeStyle = "#ffffff55";
     ctx.lineWidth = 2;
