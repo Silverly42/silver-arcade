@@ -6,7 +6,7 @@ const root = path.join(__dirname, "games/slider-io");
 test("build identifier is visible and multiplayer controls are disabled", () => {
   const version = fs.readFileSync(path.join(root, "version.js"), "utf8"),
     html = fs.readFileSync(path.join(root, "index.html"), "utf8");
-  assert.match(version, /SLIDER_BUILD='1\.2\.0-beta\.14'/);
+  assert.match(version, /SLIDER_BUILD='1\.3\.0'/);
   assert.match(version, /SLIDER_ONLINE=false/);
   assert.match(html, /id="onlinePanel" class="online hidden"/);
   assert.match(html, /id="buildHud"/);
