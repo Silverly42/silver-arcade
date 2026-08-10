@@ -1,0 +1,8 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><meta name="theme-color" content="#10130e"><title>Tank Duel</title><link rel="stylesheet" href="style.css"></head>
+<body><main><canvas id="game" width="960" height="600" aria-label="Two player Tank Duel arena"></canvas>
+<header id="hud" class="hidden"><div class="p1"><small>PLAYER 1</small><b id="p1score">0</b></div><div><small>ROUND</small><b id="round">1</b></div><div class="p2"><small>PLAYER 2</small><b id="p2score">0</b></div></header><button id="pauseBtn" class="pause hidden" aria-label="Pause">Ⅱ</button>
+<section id="menu" class="panel"><div class="kicker">SILVER ARCADE // LOCAL VERSUS</div><h1>TANK<br><span>DUEL</span></h1><p>Ricochet. Outthink. First to five wins.</p><div class="control-grid"><div><b>PLAYER 1</b><span>W/S MOVE · A/D TURN<br>SPACE FIRE</span></div><div><b>PLAYER 2</b><span>↑/↓ MOVE · ←/→ TURN<br>ENTER FIRE</span></div></div><button id="start">START MATCH</button></section>
+<section id="paused" class="panel compact hidden"><div class="kicker">CEASE FIRE</div><h2>PAUSED</h2><button id="resume">RESUME</button><button id="restartPause" class="secondary">RESTART MATCH</button></section>
+<section id="winner" class="panel hidden"><div class="kicker">MATCH COMPLETE</div><h2 id="winnerTitle">PLAYER 1 WINS</h2><p id="winnerScore">5 — 0</p><button id="restart">REMATCH</button><a href="../../">BACK TO ARCADE</a></section>
+<div id="countdown" aria-live="polite"></div><div id="roundFlash"></div>
+<script src="core.js?v=1.0.0"></script><script src="game.js?v=1.0.0"></script></main></body></html>
