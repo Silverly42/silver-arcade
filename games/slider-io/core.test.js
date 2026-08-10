@@ -114,3 +114,15 @@ test("food ball size reflects value and remains readable as the player grows", (
   assert.ok(C.foodRadius(1, 0.7) > C.foodRadius(1, 1));
   assert.ok(C.foodRadius(100, 0.7) <= 11);
 });
+test("AI energy targeting prefers valuable nearby food without doubling back", () => {
+  const snake = { x: 0, y: 0, a: 0 };
+  assert.equal(
+    C.energyTarget(snake, [
+      { id: "behind", x: -30, y: 0, value: 1 },
+      { id: "ahead", x: 80, y: 0, value: 1 },
+      { id: "rich", x: 160, y: 0, value: 4 },
+    ]).id,
+    "rich",
+  );
+  assert.equal(C.energyTarget(snake, [{ x: 2000, y: 0, value: 20 }], 900), null);
+});

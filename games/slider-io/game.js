@@ -217,6 +217,7 @@
       think: 0,
       targetFood: null,
       aiTarget: null,
+      feedCommit: 0,
       warpUntil: 0,
     };
   }
@@ -357,17 +358,7 @@
     }
   }
   function closestFood(s, radius = 900) {
-    let best = null,
-      bd = radius * radius;
-    for (const f of C.nearby(foodGrid, s.x, s.y, radius)) {
-      if (f.eaten) continue;
-      const d = C.dist2(s, f);
-      if (d < bd) {
-        bd = d;
-        best = f;
-      }
-    }
-    return best;
+    return C.energyTarget(s, C.nearby(foodGrid, s.x, s.y, radius), radius);
   }
   function eliteTarget(s) {
     let best = null,
@@ -536,8 +527,14 @@
       s.boost = s.score > 45;
       return;
     }
-    if (level === 3) {
-      s.aiTarget = eliteTarget(s);
+    if (level === 3 && s.score >= 180) {
+      const candidate = eliteTarget(s);
+      s.aiTarget =
+        candidate &&
+        s.score > candidate.score * 1.15 &&
+        C.dist2(s, candidate) < 700 * 700
+          ? candidate
+          : null;
       if (s.aiTarget) {
         const shortcut = tacticalHole(s, s.aiTarget);
         if (shortcut) {
@@ -566,15 +563,26 @@
         return;
       }
     }
-    const food = closestFood(s, level === 2 ? 1100 : 850);
-    if (food) s.target = Math.atan2(food.y - s.y, food.x - s.x);
+    const foodRadius = 1050 + level * 250;
+    if (
+      !s.targetFood ||
+      s.targetFood.eaten ||
+      C.dist2(s, s.targetFood) > foodRadius * foodRadius ||
+      s.feedCommit <= 0
+    ) {
+      s.targetFood = closestFood(s, foodRadius);
+      s.feedCommit = 0.7 + Math.random() * 0.7;
+    }
+    s.feedCommit -= s.think;
+    if (s.targetFood)
+      s.target = Math.atan2(s.targetFood.y - s.y, s.targetFood.x - s.x);
     const edge = 300 + level * 45;
     if (s.x < edge) s.target = 0;
     if (s.x > WORLD - edge) s.target = Math.PI;
     if (s.y < edge) s.target = Math.PI / 2;
     if (s.y > WORLD - edge) s.target = -Math.PI / 2;
-    s.target += (Math.random() - 0.5) * (0.5 / level);
-    s.boost = Math.random() < 0.035 * level && s.score > 45;
+    s.target += (Math.random() - 0.5) * (0.16 / level);
+    s.boost = false;
   }
   function finish(won = false) {
     if (ending) return;

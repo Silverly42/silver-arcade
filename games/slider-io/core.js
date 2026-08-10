@@ -131,6 +131,24 @@
       3.4,
       11,
     );
+  const energyTarget = (snake, foods, radius = 1200) => {
+    let best = null,
+      bestUtility = -Infinity;
+    for (const food of foods) {
+      if (food.eaten) continue;
+      const distance = Math.sqrt(dist2(snake, food));
+      if (distance > radius) continue;
+      const value = clamp(food.value || 1, 0.2, 30),
+        heading = Math.atan2(food.y - snake.y, food.x - snake.x),
+        turnCost = Math.abs(angleDelta(snake.a || 0, heading)),
+        utility = value * 190 - distance - turnCost * 75;
+      if (utility > bestUtility) {
+        bestUtility = utility;
+        best = food;
+      }
+    }
+    return best;
+  };
   return {
     TAU,
     clamp,
@@ -153,5 +171,6 @@
     sampleBody,
     foodPull,
     foodRadius,
+    energyTarget,
   };
 });
