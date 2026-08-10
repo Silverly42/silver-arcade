@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta name="theme-color" content="#050714">
+  <title>Space Defender</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main id="shell">
+    <canvas id="game" aria-label="Space Defender game arena"></canvas>
+    <header id="hud" class="hidden">
+      <div><small>SCORE</small><b id="score">000000</b></div>
+      <div><small>HIGH</small><b id="high">000000</b></div>
+      <div><small>WAVE</small><b id="wave">1</b></div>
+      <div><small>LIVES</small><b id="lives">◆◆◆</b></div>
+    </header>
+    <button id="pause" class="icon hidden" aria-label="Pause game">Ⅱ</button>
+    <section id="menu" class="panel">
+      <div class="eyebrow">ORBITAL COMMAND // SECTOR 7</div>
+      <h1>SPACE<br><span>DEFENDER</span></h1>
+      <p>Hold the line. Split the swarm. Survive the void.</p>
+      <button id="start">LAUNCH MISSION</button>
+      <div class="controls"><b>WASD / ARROWS</b> move & rotate · <b>SPACE</b> fire · <b>P</b> pause</div>
+    </section>
+    <section id="paused" class="panel hidden">
+      <div class="eyebrow">SYSTEM SUSPENDED</div><h2>PAUSED</h2>
+      <button id="resume">RESUME</button><button id="restartPause" class="secondary">RESTART</button>
+    </section>
+    <section id="gameover" class="panel hidden">
+      <div class="eyebrow">SIGNAL LOST</div><h2>GAME OVER</h2>
+      <p>Final score <b id="finalScore">0</b></p><p id="record" class="record"></p>
+      <button id="restart">REDEPLOY</button>
+    </section>
+    <div id="waveBanner" aria-live="polite"></div>
+    <div id="touch" class="hidden">
+      <div class="pad"><button data-key="left">↺</button><button data-key="thrust">▲</button><button data-key="right">↻</button></div>
+      <button data-key="fire" class="fire">FIRE</button>
+    </div>
+  </main>
+  <script src="core.js"></script><script src="game.js"></script>
+</body>
+</html>
