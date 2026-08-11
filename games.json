@@ -14,9 +14,9 @@
     "status": "playable"
   },
   {
-    "slug": "vector-frontier",
-    "title": "Vector Frontier",
-    "description": "Hunt hostile armour across a glowing first-person wireframe battlefield.",
+    "slug": "vector-frontline",
+    "title": "Vector Frontline",
+    "description": "Master twin-tread controls and hunt hostile armour across an endless vector battlefield.",
     "accent": "#57ff79",
     "status": "playable"
   }
