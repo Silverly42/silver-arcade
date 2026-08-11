@@ -5,4 +5,4 @@ test('wall stops horizontal movement',()=>{const b={x:0,y:2,w:10,h:10,vx:5,vy:0}
 test('jump is grounded only and locks direction',()=>{const b={grounded:true,vy:0};assert.equal(C.fixedJump(b,-1),true);assert.equal(b.jumpVx,-1.25);assert.equal(C.fixedJump(b,1),false)});
 test('damage removes armour before life',()=>{const p={invuln:0,state:'alive',armoured:true,lives:3,vy:0};assert.equal(C.applyHit(p),'armour');assert.equal(p.lives,3);p.invuln=0;assert.equal(C.applyHit(p),'death');assert.equal(p.lives,2)});
 test('invulnerability blocks repeat damage',()=>{const p={invuln:10,state:'alive',armoured:true,lives:3};assert.equal(C.applyHit(p),'ignored');assert.equal(p.armoured,true)});
-
+test('visual upgrade is versioned and includes layered pixel rendering',()=>{const fs=require('node:fs'),path=require('node:path'),html=fs.readFileSync(path.join(__dirname,'index.html'),'utf8'),game=fs.readFileSync(path.join(__dirname,'game.js'),'utf8');assert.match(html,/v1\.1\.0/);assert.match(game,/Distant castle and hills/);assert.match(game,/Cape behind the body/);assert.match(game,/Ground fog ribbons/)});
