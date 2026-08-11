@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta name="theme-color" content="#07130f">
+  <title>Living Worlds</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div><h1>Living Worlds</h1><p>Paint a world. Watch it find a life of its own.</p></div>
+    <div class="actions">
+      <button id="pause" aria-label="Pause simulation">⏸ Pause</button>
+      <button id="speed" aria-label="Change simulation speed">1× Speed</button>
+      <button id="save" aria-label="Save world">Save</button>
+      <button id="load" aria-label="Load world">Load</button>
+      <button id="clear" class="danger" aria-label="Clear world">Clear</button>
+    </div>
+  </header>
+  <main>
+    <section class="stage" aria-label="Simulation area">
+      <canvas id="world" width="160" height="96"></canvas>
+      <div id="tip">Drag to paint · Right-click to erase</div>
+    </section>
+    <aside>
+      <div class="toolrow">
+        <label>Brush <input id="brush" type="range" min="1" max="9" value="4"><span id="brushValue">4</span></label>
+        <button id="random">Seed a world</button>
+      </div>
+      <div id="materials" class="materials" role="toolbar" aria-label="Materials"></div>
+      <div class="legend"><span id="selectedName">Sand</span><span id="stats">0 particles</span></div>
+    </aside>
+  </main>
+  <script src="game.js"></script>
+</body>
+</html>
+
