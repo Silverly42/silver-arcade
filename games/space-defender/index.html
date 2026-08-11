@@ -15,6 +15,7 @@
       <div><small>HIGH</small><b id="high">000000</b></div>
       <div><small>WAVE</small><b id="wave">1</b></div>
       <div><small>LIVES</small><b id="lives">◆◆◆</b></div>
+      <div><small>ESCAPE [E]</small><b id="escapeStatus">READY</b></div>
     </header>
     <button id="pause" class="icon hidden" aria-label="Pause game">Ⅱ</button>
     <section id="menu" class="panel">
@@ -22,7 +23,7 @@
       <h1>SPACE<br><span>DEFENDER</span></h1>
       <p>Hold the line. Split the swarm. Survive the void.</p>
       <button id="start">LAUNCH MISSION</button>
-      <div class="controls"><b>WASD / ARROWS</b> move & rotate · <b>SPACE</b> fire · <b>P</b> pause</div>
+      <div class="controls"><b>WASD / ARROWS</b> move & rotate · <b>SPACE</b> fire · <b>E</b> emergency teleport · <b>P</b> pause</div>
     </section>
     <section id="paused" class="panel hidden">
       <div class="eyebrow">SYSTEM SUSPENDED</div><h2>PAUSED</h2>
@@ -31,14 +32,15 @@
     <section id="gameover" class="panel hidden">
       <div class="eyebrow">SIGNAL LOST</div><h2>GAME OVER</h2>
       <p>Final score <b id="finalScore">0</b></p><p id="record" class="record"></p>
+      <div class="leaderboard"><small>LOCAL LEADERBOARD</small><ol id="leaderboard"></ol></div>
       <button id="restart">REDEPLOY</button>
     </section>
     <div id="waveBanner" aria-live="polite"></div>
     <div id="touch" class="hidden">
       <div class="pad"><button data-key="left">↺</button><button data-key="thrust">▲</button><button data-key="right">↻</button></div>
-      <button data-key="fire" class="fire">FIRE</button>
+      <div class="actions"><button data-key="escape" class="escape">ESC</button><button data-key="fire" class="fire">FIRE</button></div>
     </div>
   </main>
-  <script src="core.js?v=1.1.0"></script><script src="game.js?v=1.1.0"></script>
+  <script src="core.js?v=1.2.0"></script><script src="game.js?v=1.2.0"></script>
 </body>
 </html>
