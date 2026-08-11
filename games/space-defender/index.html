@@ -32,8 +32,9 @@
     <section id="gameover" class="panel hidden">
       <div class="eyebrow">SIGNAL LOST</div><h2>GAME OVER</h2>
       <p>Final score <b id="finalScore">0</b></p><p id="record" class="record"></p>
+      <label class="callsign">CALLSIGN <input id="pilotName" maxlength="5" autocomplete="nickname" aria-label="Leaderboard name, five characters maximum" value="ACE"></label>
       <div class="leaderboard"><small>LOCAL LEADERBOARD</small><ol id="leaderboard"></ol></div>
-      <button id="restart">REDEPLOY</button>
+      <button id="saveScore">SAVE SCORE</button><button id="restart" class="secondary">REDEPLOY</button>
     </section>
     <div id="waveBanner" aria-live="polite"></div>
     <div id="touch" class="hidden">
@@ -41,6 +42,6 @@
       <div class="actions"><button data-key="escape" class="escape">ESC</button><button data-key="fire" class="fire">FIRE</button></div>
     </div>
   </main>
-  <script src="core.js?v=1.2.0"></script><script src="game.js?v=1.2.0"></script>
+  <script src="core.js?v=1.2.1"></script><script src="game.js?v=1.2.1"></script>
 </body>
 </html>
