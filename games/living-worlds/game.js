@@ -38,16 +38,17 @@
   function updateLiquid(x,y,range=3){if(move(x,y,x,y+1))return;const d=chance(.5)?-1:1;for(let s=1;s<=range;s++)if(move(x,y,x+d*s,y)){return}for(let s=1;s<=range;s++)if(move(x,y,x-d*s,y)){return}}
   function updateGas(x,y){const d=Math.floor(Math.random()*3)-1;if(move(x,y,x+d,y-1))return;move(x,y,x+(chance(.5)?-1:1),y);}
   function near(x,y,type){for(let yy=-1;yy<=1;yy++)for(let xx=-1;xx<=1;xx++)if((xx||yy)&&inside(x+xx,y+yy)&&grid[idx(x+xx,y+yy)]===type)return [x+xx,y+yy];return null}
+  const hot=(x,y)=>near(x,y,FIRE)||near(x,y,LAVA)||near(x,y,LIGHTNING);
   function burnAround(x,y){for(let yy=-1;yy<=1;yy++)for(let xx=-1;xx<=1;xx++){if(!inside(x+xx,y+yy))continue;const i=idx(x+xx,y+yy),v=grid[i];if((v===WOOD||v===PLANT||v===SEED||v===OIL||v===POWDER||v===WAX||v===FUSE)&&chance(v===OIL?.3:(v===POWDER||v===FUSE)?.8:.025)){grid[i]=FIRE;life[i]=0}if(v===TNT||v===BOMB)life[i]=Math.max(life[i],1)}}
   function updateCell(x,y){const i=idx(x,y),v=grid[i];if(!v)return;life[i]++;
-    if(v===SAND||v===SALT||v===SOIL||v===POWDER||v===SNOW){if(v===SNOW&&(near(x,y,FIRE)||near(x,y,LAVA))){grid[i]=WATER;return}updatePowder(x,y);return}
-    if(v===WATER){if(near(x,y,LAVA)){grid[i]=STEAM;const p=near(x,y,LAVA);if(p)set(p[0],p[1],OBSIDIAN);return}const dirt=near(x,y,SOIL);if(dirt&&chance(.015)){set(dirt[0],dirt[1],MUD);if(chance(.35))grid[i]=MUD;return}if(chance(.0003))set(x,y,ICE);else updateLiquid(x,y,4);return}
+    if(v===SAND||v===SALT||v===SOIL||v===POWDER||v===SNOW){if(v===SAND&&hot(x,y)){if(life[i]>45){grid[i]=GLASS;life[i]=0}return}if(v===SNOW&&hot(x,y)){grid[i]=WATER;return}if(v===SOIL&&hot(x,y)&&life[i]>80){grid[i]=STONE;life[i]=0;return}updatePowder(x,y);return}
+    if(v===WATER){if(near(x,y,LAVA)){grid[i]=STEAM;const p=near(x,y,LAVA);if(p)set(p[0],p[1],OBSIDIAN);return}if(near(x,y,FIRE)&&life[i]>18){grid[i]=STEAM;life[i]=0;return}const salt=near(x,y,SALT);if(salt&&chance(.12)){set(salt[0],salt[1],EMPTY);return}const dirt=near(x,y,SOIL);if(dirt&&chance(.015)){set(dirt[0],dirt[1],MUD);if(chance(.35))grid[i]=MUD;return}if(chance(.0003))set(x,y,ICE);else updateLiquid(x,y,4);return}
     if(v===OIL){updateLiquid(x,y,5);return}
     if(v===ACID){for(const t of [WOOD,PLANT,SEED,BUG,METAL,STONE]){const p=near(x,y,t);if(p&&chance(.08)){set(p[0],p[1],EMPTY);if(chance(.15))set(x,y,EMPTY);return}}updateLiquid(x,y,3);return}
     if(v===LAVA){burnAround(x,y);const p=near(x,y,WATER);if(p){set(p[0],p[1],STEAM);set(x,y,STONE);return}if(life[i]>900&&chance(.03)){grid[i]=STONE;return}updateLiquid(x,y,1);return}
     if(v===FIRE){burnAround(x,y);const p=near(x,y,WATER);if(p){grid[i]=STEAM;return}if(life[i]>25+Math.random()*75){grid[i]=chance(.55)?SMOKE:EMPTY;life[i]=0;return}if(empty(x,y-1)&&chance(.35))set(x,y-1,FIRE);return}
     if(v===STEAM||v===SMOKE){if(v===STEAM&&life[i]>180&&chance(.03)){grid[i]=WATER;return}if(v===SMOKE&&life[i]>130&&chance(.08)){grid[i]=EMPTY;return}updateGas(x,y);return}
-    if(v===ICE){if(near(x,y,FIRE)||near(x,y,LAVA)){grid[i]=WATER;life[i]=0}return}
+    if(v===ICE){if(hot(x,y)){grid[i]=WATER;life[i]=0}return}
     if(v===SEED){if(y+1<H&&(grid[idx(x,y+1)]===SOIL||grid[idx(x,y+1)]===SAND)&&near(x,y,WATER)&&life[i]>15){grid[i]=PLANT;life[i]=0}else updatePowder(x,y);return}
     if(v===PLANT){if(near(x,y,FIRE)||near(x,y,LAVA)){grid[i]=FIRE;life[i]=0;return}if(life[i]%35===0&&chance(.55)){const spots=[[0,-1],[-1,0],[1,0]];const q=spots[Math.floor(Math.random()*spots.length)];if(empty(x+q[0],y+q[1]))set(x+q[0],y+q[1],PLANT)}return}
     if(v===BUG){if(near(x,y,FIRE)||near(x,y,LAVA)||near(x,y,ACID)){grid[i]=SMOKE;return}const food=near(x,y,PLANT);if(food){set(food[0],food[1],BUG);set(x,y,EMPTY);return}const d=chance(.5)?-1:1;if(!move(x,y,x+d,y)&&chance(.4))move(x,y,x,y-1);if(empty(x,y+1))move(x,y,x,y+1);return}
@@ -58,11 +59,11 @@
     if(v===LIGHTNING){burnAround(x,y);for(let yy=-1;yy<=1;yy++)for(let xx=-1;xx<=1;xx++)if(inside(x+xx,y+yy)&&grid[idx(x+xx,y+yy)]===TNT)life[idx(x+xx,y+yy)]=2;if(life[i]>18||y===H-1){grid[i]=EMPTY;return}if(empty(x,y+1))move(x,y,x,y+1);else{const d=chance(.5)?-1:1;if(!move(x,y,x+d,y+1))move(x,y,x-d,y+1)}return}
     if(v===SLIME){const p=near(x,y,WATER);if(p&&chance(.03)){set(p[0],p[1],SLIME);return}if(tick%3===0)updateLiquid(x,y,1);return}
     if(v===RAINBOW)return;
-    if(v===MUD){if(near(x,y,FIRE)||near(x,y,LAVA)){grid[i]=SOIL;return}if(tick%2===0)updateLiquid(x,y,1);return}
-    if(v===WAX){if(near(x,y,FIRE)||near(x,y,LAVA)){grid[i]=OIL;return}return}
+    if(v===MUD){if(hot(x,y)&&life[i]>55){grid[i]=STONE;life[i]=0;return}if(tick%2===0)updateLiquid(x,y,1);return}
+    if(v===WAX){if(hot(x,y)){grid[i]=OIL;life[i]=1}return}
     if(v===FUSE){if(near(x,y,FIRE)||near(x,y,SPARK)){grid[i]=FIRE;life[i]=0}else updatePowder(x,y);return}
     if(v===BOMB){if(near(x,y,FIRE)||near(x,y,SPARK)||near(x,y,LIGHTNING)||life[i]>1){if(life[i]>10)explode(x,y,15)}else{life[i]=0;updatePowder(x,y)}return}
-    if(v===MERCURY){if(near(x,y,SPARK)&&chance(.25))set(x,y,LIGHTNING);else updateLiquid(x,y,6);return}
+    if(v===MERCURY){updateLiquid(x,y,6);return}
     if(v===FOAM){const p=near(x,y,FIRE);if(p){set(p[0],p[1],SMOKE);if(chance(.3))grid[i]=EMPTY;return}if(life[i]>500&&chance(.02)){grid[i]=EMPTY;return}if(tick%4===0)updateGas(x,y);return}
     if(v===CLOUD){if(life[i]>100&&chance(.012))set(x,y,WATER);else if(tick%5===0)updateGas(x,y);return}
     if(v===VIRUS){const immune=[EMPTY,VIRUS,VOID,RAINBOW,GLASS,METAL,OBSIDIAN];for(let yy=-1;yy<=1;yy++)for(let xx=-1;xx<=1;xx++){if(!inside(x+xx,y+yy))continue;const q=idx(x+xx,y+yy);if(!immune.includes(grid[q])&&chance(.035))set(x+xx,y+yy,VIRUS)}if(life[i]>450&&chance(.03))grid[i]=EMPTY;return}

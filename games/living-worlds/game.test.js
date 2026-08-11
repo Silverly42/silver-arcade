@@ -17,3 +17,12 @@ test('Box of Elements exposes 39 materials, larger maps, and chaos interactions'
   assert.match(js, /function resizeWorld\(/);
   assert.doesNotMatch(js, /i\*13\+tick\*7/);
 });
+
+test('common materials have grounded physical reactions', () => {
+  assert.match(js, /v===SAND&&hot\(x,y\)/);
+  assert.match(js, /grid\[i\]=GLASS/);
+  assert.match(js, /v===WATER.*near\(x,y,FIRE\).*grid\[i\]=STEAM/);
+  assert.match(js, /const salt=near\(x,y,SALT\)/);
+  assert.match(js, /v===MUD.*hot\(x,y\).*grid\[i\]=STONE/);
+  assert.doesNotMatch(js, /v===MERCURY.*set\(x,y,LIGHTNING\)/);
+});
