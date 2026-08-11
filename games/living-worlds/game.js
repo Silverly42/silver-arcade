@@ -3,7 +3,7 @@
   const canvas = document.querySelector('#world');
   const ctx = canvas.getContext('2d', { alpha: false });
   let W = canvas.width, H = canvas.height, N = W * H;
-  const EMPTY=0,SAND=1,WATER=2,SOIL=3,SEED=4,WOOD=5,FIRE=6,OIL=7,LAVA=8,STONE=9,ICE=10,STEAM=11,SMOKE=12,ACID=13,SALT=14,GLASS=15,METAL=16,PLANT=17,BUG=18,SPARK=19,TNT=20,POWDER=21,CLONE=22,VOID=23,LIGHTNING=24,SLIME=25,RAINBOW=26,SNOW=27,MUD=28,WAX=29,FUSE=30,BOMB=31,MERCURY=32,FOAM=33,OBSIDIAN=34,CLOUD=35,VIRUS=36,ANTIMATTER=37,CONCRETE=38;
+  const EMPTY=0,SAND=1,WATER=2,SOIL=3,SEED=4,WOOD=5,FIRE=6,OIL=7,LAVA=8,STONE=9,ICE=10,STEAM=11,SMOKE=12,ACID=13,SALT=14,GLASS=15,METAL=16,PLANT=17,BUG=18,SPARK=19,TNT=20,POWDER=21,CLONE=22,VOID=23,LIGHTNING=24,SLIME=25,RAINBOW=26,SNOW=27,MUD=28,WAX=29,FUSE=30,BOMB=31,MERCURY=32,FOAM=33,OBSIDIAN=34,CLOUD=35,VIRUS=36,ANTIMATTER=37,CONCRETE=38,QUARTZITE=39,BASALT=40,SULFUR=41,COPPER_ORE=42,CRYSTAL=43;
   const mats = [
     ['Eraser','#071115'],['Sand','#d7b86c'],['Water','#3c8bd9'],['Soil','#79533a'],['Seed','#a7d45b'],
     ['Wood','#a36d3d'],['Fire','#ff6b35'],['Oil','#4c4039'],['Lava','#ef3d24'],['Stone','#737b7d'],
@@ -12,12 +12,13 @@
     ['TNT','#e12525'],['Gunpowder','#302d32'],['Removed','#071115'],['Void','#120820'],['Lightning','#dff8ff'],
     ['Slime','#39ef8a'],['Rainbow','#ff4da6'],['Snow','#e9f8ff'],['Mud','#65452f'],['Wax','#f4c95d'],
     ['Fuse','#bd7b3a'],['Bomb','#292d35'],['Mercury','#c9d0d6'],['Foam','#f3fff8'],['Obsidian','#271c38'],
-    ['Cloud','#b9c8cc'],['Virus','#aaff2c'],['Antimatter','#ff2bd6'],['Concrete','#94918a']
+    ['Cloud','#b9c8cc'],['Virus','#aaff2c'],['Antimatter','#ff2bd6'],['Concrete','#94918a'],
+    ['Quartzite','#d8cbd0'],['Basalt','#34383d'],['Sulfur','#e7d83a'],['Copper Ore','#8c5b43'],['Crystal','#9de8ee']
   ];
   const color = mats.map(m => m[1]);
   let grid = new Uint8Array(N), life = new Uint16Array(N);
   let selected=SAND, brush=4, paused=false, speed=1, drawing=false, count=0, tick=0, inspectMode=false, lastPaint=null;
-  let glassTime=180, brushShape='circle', brushSolid=true;
+  let mineralTime=180, brushShape='circle', brushSolid=true;
   const idx=(x,y)=>x+y*W, inside=(x,y)=>x>=0&&x<W&&y>=0&&y<H;
   const swap=(a,b)=>{const g=grid[a],l=life[a];grid[a]=grid[b];life[a]=life[b];grid[b]=g;life[b]=l};
   const set=(x,y,v,age=0)=>{if(inside(x,y)){const i=idx(x,y);grid[i]=v;life[i]=age}};
@@ -42,11 +43,11 @@
   const hot=(x,y)=>near(x,y,FIRE)||near(x,y,LAVA)||near(x,y,LIGHTNING);
   function burnAround(x,y){for(let yy=-1;yy<=1;yy++)for(let xx=-1;xx<=1;xx++){if(!inside(x+xx,y+yy))continue;const i=idx(x+xx,y+yy),v=grid[i];if((v===WOOD||v===PLANT||v===SEED||v===OIL||v===POWDER||v===WAX||v===FUSE)&&chance(v===OIL?.3:(v===POWDER||v===FUSE)?.8:.025)){grid[i]=FIRE;life[i]=0}if(v===TNT||v===BOMB)life[i]=Math.max(life[i],1)}}
   function updateCell(x,y){const i=idx(x,y),v=grid[i];if(!v)return;life[i]++;
-    if(v===SAND||v===SALT||v===SOIL||v===POWDER||v===SNOW){if(v===SAND&&hot(x,y)){if(life[i]>glassTime){grid[i]=GLASS;life[i]=0}return}if(v===SNOW&&hot(x,y)){grid[i]=WATER;return}if(v===SOIL&&hot(x,y)&&life[i]>120){grid[i]=STONE;life[i]=0;return}updatePowder(x,y);return}
+    if(v===SAND||v===SALT||v===SOIL||v===POWDER||v===SNOW||v===SULFUR||v===COPPER_ORE){if(v===SAND&&near(x,y,LAVA)){if(life[i]>mineralTime){grid[i]=QUARTZITE;life[i]=0}return}if(v===SALT&&near(x,y,LAVA)&&life[i]>mineralTime*.7){grid[i]=CRYSTAL;life[i]=0;return}if(v===SOIL&&near(x,y,LAVA)&&life[i]>mineralTime){grid[i]=chance(.72)?BASALT:(chance(.55)?COPPER_ORE:SULFUR);life[i]=0;return}if(v===SNOW&&hot(x,y)){grid[i]=WATER;return}updatePowder(x,y);return}
     if(v===WATER){if(near(x,y,LAVA)){grid[i]=STEAM;const p=near(x,y,LAVA);if(p)set(p[0],p[1],OBSIDIAN);return}if(near(x,y,FIRE)&&life[i]>18){grid[i]=STEAM;life[i]=0;return}const salt=near(x,y,SALT);if(salt&&chance(.12)){set(salt[0],salt[1],EMPTY);return}const dirt=near(x,y,SOIL);if(dirt&&chance(.015)){set(dirt[0],dirt[1],MUD);if(chance(.35))grid[i]=MUD;return}if(chance(.0003))set(x,y,ICE);else updateLiquid(x,y,4);return}
     if(v===OIL){updateLiquid(x,y,5);return}
     if(v===ACID){for(const t of [WOOD,PLANT,SEED,BUG,METAL,STONE]){const p=near(x,y,t);if(p&&chance(.08)){set(p[0],p[1],EMPTY);if(chance(.15))set(x,y,EMPTY);return}}updateLiquid(x,y,3);return}
-    if(v===LAVA){burnAround(x,y);const p=near(x,y,WATER);if(p){set(p[0],p[1],STEAM);set(x,y,STONE);return}if(life[i]>900&&chance(.03)){grid[i]=STONE;return}updateLiquid(x,y,1);return}
+    if(v===LAVA){burnAround(x,y);const p=near(x,y,WATER);if(p){set(p[0],p[1],STEAM);set(x,y,OBSIDIAN);return}if(life[i]>900&&chance(.03)){grid[i]=chance(.82)?BASALT:(chance(.55)?SULFUR:COPPER_ORE);life[i]=0;return}updateLiquid(x,y,1);return}
     if(v===FIRE){burnAround(x,y);const p=near(x,y,WATER);if(p){grid[i]=STEAM;return}if(life[i]>18+Math.random()*42){grid[i]=chance(.68)?SMOKE:EMPTY;life[i]=0;return}const drift=chance(.55)?0:(chance(.5)?-1:1);if(empty(x+drift,y-1)&&chance(.72)){move(x,y,x+drift,y-1);return}if(chance(.12))grid[i]=SMOKE;return}
     if(v===STEAM||v===SMOKE){if(v===STEAM&&life[i]>180&&chance(.03)){grid[i]=WATER;return}if(v===SMOKE&&life[i]>130&&chance(.08)){grid[i]=EMPTY;return}updateGas(x,y);return}
     if(v===ICE){if(hot(x,y)){grid[i]=WATER;life[i]=0}return}
@@ -86,7 +87,7 @@
   document.querySelector('#speed').onclick=e=>{speed=speed===1?2:speed===2?4:1;e.currentTarget.textContent=`${speed}× Speed`};
   document.querySelector('#pinpointer').onclick=e=>{inspectMode=!inspectMode;e.currentTarget.setAttribute('aria-pressed',String(inspectMode));e.currentTarget.textContent=inspectMode?'⌖ Inspecting':'⌖ Pinpointer';canvas.style.cursor=inspectMode?'help':'crosshair'};
   document.querySelector('#options').onclick=()=>document.querySelector('#optionsMenu').showModal();
-  document.querySelector('#glassTime').onchange=e=>glassTime=+e.target.value;
+  document.querySelector('#mineralTime').onchange=e=>mineralTime=+e.target.value;
   document.querySelector('#brushShape').onchange=e=>brushShape=e.target.value;
   document.querySelector('#brushSolid').onchange=e=>brushSolid=e.target.checked;
   document.querySelector('#clear').onclick=()=>{if(confirm('Clear the entire world?')){grid.fill(0);life.fill(0)}};
