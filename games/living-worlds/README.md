@@ -1,6 +1,6 @@
-# Living Worlds
+# Box of Elements
 
-An original falling-sand ecosystem game built with plain HTML, CSS, and JavaScript.
+An original falling-sand ecosystem and destruction sandbox built with plain HTML, CSS, and JavaScript.
 
 Open `index.html` directly, or serve the folder with:
 
@@ -18,4 +18,3 @@ Then visit http://localhost:8080.
 - Pause, change speed, save/load locally, clear, or generate a starter world
 
 The game is fully static and can be uploaded directly to itch.io or any static web host.
-
