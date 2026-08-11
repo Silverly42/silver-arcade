@@ -17,6 +17,9 @@ test('Box of Elements exposes mineral alchemy, larger maps, and chaos interactio
   assert.match(html, /value="480x288">Huge/);
   assert.match(html, /value="720x432">Titanic/);
   assert.match(js, /function resizeWorld\(/);
+  assert.match(js, /const waterline=base-1/);
+  assert.match(js, /set\(x,ground\[x\]-1,type\)/);
+  assert.match(js, /document\.addEventListener\('contextmenu'/);
   assert.doesNotMatch(js, /i\*13\+tick\*7/);
 });
 
