@@ -13,8 +13,9 @@ test('Box of Elements exposes mineral alchemy, larger maps, and chaos interactio
   }
   assert.match(js, /function explode\(/);
   assert.match(js, /localStorage\.getItem\('living-worlds-save'\)/);
-  assert.match(html, /value="320x192">Huge/);
-  assert.match(html, /value="640x384">Titanic/);
+  assert.match(html, /value="240x144">Normal/);
+  assert.match(html, /value="480x288">Huge/);
+  assert.match(html, /value="720x432">Titanic/);
   assert.match(js, /function resizeWorld\(/);
   assert.doesNotMatch(js, /i\*13\+tick\*7/);
 });
@@ -44,6 +45,7 @@ test('common materials have grounded physical reactions', () => {
   assert.match(js, /v===QUARTZITE.*grid\[i\]=CRYSTAL/);
   assert.match(js, /v===COPPER_ORE.*grid\[i\]=METAL/);
   assert.match(html, /id="temperature"[^>]+min="-100"[^>]+max="100"/);
+  assert.match(html, /id="temperature"[^>]+aria-label="World temperature"/);
   assert.match(js, /ambientTemp<0.*set\(x,y,ICE\)/);
   assert.doesNotMatch(js, /if\(chance\(\.0003\)\)set\(x,y,ICE\)/);
 });

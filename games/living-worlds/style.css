@@ -141,8 +141,49 @@ aside {
 .toolrow input {
   width: 72px;
 }
-.toolrow .temperature { flex:1 1 220px; }
-.toolrow .temperature input { width:min(180px,35vw); accent-color:var(--accent); }
+.toolrow .temperature { flex:1 1 250px; }
+.toolrow .temperature input {
+  width:min(210px,42vw);
+  height:44px;
+  margin:-10px 0;
+  padding:0;
+  appearance:none;
+  -webkit-appearance:none;
+  background:transparent;
+  cursor:pointer;
+  touch-action:none;
+}
+.toolrow .temperature input::-webkit-slider-runnable-track {
+  height:8px;
+  border-radius:999px;
+  background:linear-gradient(90deg,#87d8ff,#74f0a7 50%,#ff866f);
+  box-shadow:inset 0 0 0 1px #ffffff20;
+}
+.toolrow .temperature input::-webkit-slider-thumb {
+  width:24px;
+  height:24px;
+  margin-top:-8px;
+  border:2px solid #fff;
+  border-radius:50%;
+  background:#59636d;
+  box-shadow:0 2px 7px #0009;
+  -webkit-appearance:none;
+}
+.toolrow .temperature input::-moz-range-track {
+  height:8px;
+  border-radius:999px;
+  background:linear-gradient(90deg,#87d8ff,#74f0a7 50%,#ff866f);
+  box-shadow:inset 0 0 0 1px #ffffff20;
+}
+.toolrow .temperature input::-moz-range-thumb {
+  width:22px;
+  height:22px;
+  border:2px solid #fff;
+  border-radius:50%;
+  background:#59636d;
+  box-shadow:0 2px 7px #0009;
+}
+.toolrow .temperature input:focus-visible { outline:2px solid #fff; outline-offset:1px; border-radius:999px; }
 .toolrow output { min-width:45px; color:var(--ink); font-weight:800; }
 .toolrow select {
   border: 1px solid var(--edge);
