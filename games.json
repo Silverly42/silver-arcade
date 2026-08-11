@@ -5,5 +5,12 @@
     "description": "Grow a neon serpent, out-turn rivals, and rule the arena.",
     "accent": "#66f7d4",
     "status": "playable"
+  },
+  {
+    "slug": "gravebound-knight",
+    "title": "Gravebound Knight",
+    "description": "Cross the burial wilds, shatter the Briar Warden, and reclaim the dawn seal.",
+    "accent": "#ffcf73",
+    "status": "playable"
   }
 ]

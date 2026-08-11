@@ -12,7 +12,6 @@
     skins = [
       "#62f6d0", "#ff5e8a", "#ffd25f", "#7b73ff", "#58b7ff", "#ff8d4d",
       "#ee72ff", "#8cff66", "#ff4141", "#4de1ff", "#f3f3f3", "#b88a5a",
-      "#ff9ee4", "#84a1ff", "#d7ff45", "#ffb44d",
     ];
   const names = [
     "skibidi", "bro really slid", "nah id win", "goober", "orb goblin",

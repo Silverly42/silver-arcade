@@ -6,7 +6,7 @@ const root = path.join(__dirname, "games/slider-io");
 test("build identifier is visible and multiplayer controls are disabled", () => {
   const version = fs.readFileSync(path.join(root, "version.js"), "utf8"),
     html = fs.readFileSync(path.join(root, "index.html"), "utf8");
-  assert.match(version, /SLIDER_BUILD='1\.3\.1'/);
+  assert.match(version, /SLIDER_BUILD='1\.3\.2'/);
   assert.match(version, /SLIDER_ONLINE=false/);
   assert.match(html, /id="onlinePanel" class="online hidden"/);
   assert.match(html, /id="buildHud"/);
@@ -63,13 +63,14 @@ test("bots release awkward orb targets and death drops survive a full arena", ()
   assert.match(game, /"orb goblin"/);
   assert.match(game, /"allat"/);
 });
-test("Slider 1.3.1 adds anti-circle recovery colours victory sound and giant growth", () => {
+test("Slider 1.3.2 adds anti-circle recovery 12 colours victory sound and giant growth", () => {
   const game = fs.readFileSync(path.join(root, "game.js"), "utf8"),
     core = fs.readFileSync(path.join(root, "core.js"), "utf8");
   assert.match(game, /moved < 85/);
   assert.match(game, /s\.breakUntil = now \+ 2400/);
   assert.match(game, /function victoryTone\(\)/);
   assert.match(game, /"#ee72ff"/);
+  assert.doesNotMatch(game, /"#ff9ee4"/);
   assert.match(game, /Math\.min\(1200, s\.score/);
   assert.match(core, /0\.85, 14, 64/);
 });
