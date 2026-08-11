@@ -3,6 +3,11 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const root = path.join(__dirname, "games/slider-io");
+test("arcade homepage launches Gravebound Knight", () => {
+  const html = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");
+  assert.match(html, /href="games\/gravebound-knight\/"/);
+  assert.match(html, /<h2>Gravebound Knight<\/h2>/);
+});
 test("build identifier is visible and multiplayer controls are disabled", () => {
   const version = fs.readFileSync(path.join(root, "version.js"), "utf8"),
     html = fs.readFileSync(path.join(root, "index.html"), "utf8");
