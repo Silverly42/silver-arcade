@@ -2,18 +2,20 @@
   'use strict';
   const canvas = document.querySelector('#world');
   const ctx = canvas.getContext('2d', { alpha: false });
-  const W = canvas.width, H = canvas.height, N = W * H;
-  const EMPTY=0,SAND=1,WATER=2,SOIL=3,SEED=4,WOOD=5,FIRE=6,OIL=7,LAVA=8,STONE=9,ICE=10,STEAM=11,SMOKE=12,ACID=13,SALT=14,GLASS=15,METAL=16,PLANT=17,BUG=18,SPARK=19,TNT=20,POWDER=21,CLONE=22,VOID=23,LIGHTNING=24,SLIME=25,RAINBOW=26;
+  let W = canvas.width, H = canvas.height, N = W * H;
+  const EMPTY=0,SAND=1,WATER=2,SOIL=3,SEED=4,WOOD=5,FIRE=6,OIL=7,LAVA=8,STONE=9,ICE=10,STEAM=11,SMOKE=12,ACID=13,SALT=14,GLASS=15,METAL=16,PLANT=17,BUG=18,SPARK=19,TNT=20,POWDER=21,CLONE=22,VOID=23,LIGHTNING=24,SLIME=25,RAINBOW=26,SNOW=27,MUD=28,WAX=29,FUSE=30,BOMB=31,MERCURY=32,FOAM=33,OBSIDIAN=34,CLOUD=35,VIRUS=36,ANTIMATTER=37,CONCRETE=38;
   const mats = [
     ['Eraser','#071115'],['Sand','#d7b86c'],['Water','#3c8bd9'],['Soil','#79533a'],['Seed','#a7d45b'],
     ['Wood','#a36d3d'],['Fire','#ff6b35'],['Oil','#4c4039'],['Lava','#ef3d24'],['Stone','#737b7d'],
     ['Ice','#a7e9ff'],['Steam','#c9e6e2'],['Smoke','#596164'],['Acid','#89e346'],['Salt','#e8e4d5'],
     ['Glass','#8fc6c5'],['Metal','#aab3bc'],['Plant','#39a84a'],['Critter','#f49bc4'],['Spark','#fff06a'],
     ['TNT','#e12525'],['Gunpowder','#302d32'],['Clone','#be63ff'],['Void','#120820'],['Lightning','#fffbd1'],
-    ['Slime','#39ef8a'],['Rainbow','#ff4da6']
+    ['Slime','#39ef8a'],['Rainbow','#ff4da6'],['Snow','#e9f8ff'],['Mud','#65452f'],['Wax','#f4c95d'],
+    ['Fuse','#bd7b3a'],['Bomb','#292d35'],['Mercury','#c9d0d6'],['Foam','#f3fff8'],['Obsidian','#271c38'],
+    ['Cloud','#b9c8cc'],['Virus','#aaff2c'],['Antimatter','#ff2bd6'],['Concrete','#94918a']
   ];
   const color = mats.map(m => m[1]);
-  const grid = new Uint8Array(N), life = new Uint16Array(N);
+  let grid = new Uint8Array(N), life = new Uint16Array(N);
   let selected=SAND, brush=4, paused=false, speed=1, drawing=false, count=0, tick=0;
   const idx=(x,y)=>x+y*W, inside=(x,y)=>x>=0&&x<W&&y>=0&&y<H;
   const swap=(a,b)=>{const g=grid[a],l=life[a];grid[a]=grid[b];life[a]=life[b];grid[b]=g;life[b]=l};
@@ -36,10 +38,10 @@
   function updateLiquid(x,y,range=3){if(move(x,y,x,y+1))return;const d=chance(.5)?-1:1;for(let s=1;s<=range;s++)if(move(x,y,x+d*s,y)){return}for(let s=1;s<=range;s++)if(move(x,y,x-d*s,y)){return}}
   function updateGas(x,y){const d=Math.floor(Math.random()*3)-1;if(move(x,y,x+d,y-1))return;move(x,y,x+(chance(.5)?-1:1),y);}
   function near(x,y,type){for(let yy=-1;yy<=1;yy++)for(let xx=-1;xx<=1;xx++)if((xx||yy)&&inside(x+xx,y+yy)&&grid[idx(x+xx,y+yy)]===type)return [x+xx,y+yy];return null}
-  function burnAround(x,y){for(let yy=-1;yy<=1;yy++)for(let xx=-1;xx<=1;xx++){if(!inside(x+xx,y+yy))continue;const i=idx(x+xx,y+yy),v=grid[i];if((v===WOOD||v===PLANT||v===SEED||v===OIL||v===POWDER)&&chance(v===OIL?.3:v===POWDER?.8:.025)){grid[i]=FIRE;life[i]=0}if(v===TNT)life[i]=Math.max(life[i],1)}}
+  function burnAround(x,y){for(let yy=-1;yy<=1;yy++)for(let xx=-1;xx<=1;xx++){if(!inside(x+xx,y+yy))continue;const i=idx(x+xx,y+yy),v=grid[i];if((v===WOOD||v===PLANT||v===SEED||v===OIL||v===POWDER||v===WAX||v===FUSE)&&chance(v===OIL?.3:(v===POWDER||v===FUSE)?.8:.025)){grid[i]=FIRE;life[i]=0}if(v===TNT||v===BOMB)life[i]=Math.max(life[i],1)}}
   function updateCell(x,y){const i=idx(x,y),v=grid[i];if(!v)return;life[i]++;
-    if(v===SAND||v===SALT||v===SOIL||v===POWDER){updatePowder(x,y);return}
-    if(v===WATER){if(near(x,y,LAVA)){grid[i]=STEAM;const p=near(x,y,LAVA);if(p)set(p[0],p[1],STONE);return}if(chance(.0003))set(x,y,ICE);else updateLiquid(x,y,4);return}
+    if(v===SAND||v===SALT||v===SOIL||v===POWDER||v===SNOW){if(v===SNOW&&(near(x,y,FIRE)||near(x,y,LAVA))){grid[i]=WATER;return}updatePowder(x,y);return}
+    if(v===WATER){if(near(x,y,LAVA)){grid[i]=STEAM;const p=near(x,y,LAVA);if(p)set(p[0],p[1],OBSIDIAN);return}const dirt=near(x,y,SOIL);if(dirt&&chance(.015)){set(dirt[0],dirt[1],MUD);if(chance(.35))grid[i]=MUD;return}if(chance(.0003))set(x,y,ICE);else updateLiquid(x,y,4);return}
     if(v===OIL){updateLiquid(x,y,5);return}
     if(v===ACID){for(const t of [WOOD,PLANT,SEED,BUG,METAL,STONE]){const p=near(x,y,t);if(p&&chance(.08)){set(p[0],p[1],EMPTY);if(chance(.15))set(x,y,EMPTY);return}}updateLiquid(x,y,3);return}
     if(v===LAVA){burnAround(x,y);const p=near(x,y,WATER);if(p){set(p[0],p[1],STEAM);set(x,y,STONE);return}if(life[i]>900&&chance(.03)){grid[i]=STONE;return}updateLiquid(x,y,1);return}
@@ -56,9 +58,19 @@
     if(v===LIGHTNING){burnAround(x,y);for(let yy=-1;yy<=1;yy++)for(let xx=-1;xx<=1;xx++)if(inside(x+xx,y+yy)&&grid[idx(x+xx,y+yy)]===TNT)life[idx(x+xx,y+yy)]=2;if(life[i]>18||y===H-1){grid[i]=EMPTY;return}if(empty(x,y+1))move(x,y,x,y+1);else{const d=chance(.5)?-1:1;if(!move(x,y,x+d,y+1))move(x,y,x-d,y+1)}return}
     if(v===SLIME){const p=near(x,y,WATER);if(p&&chance(.03)){set(p[0],p[1],SLIME);return}if(tick%3===0)updateLiquid(x,y,1);return}
     if(v===RAINBOW)return;
+    if(v===MUD){if(near(x,y,FIRE)||near(x,y,LAVA)){grid[i]=SOIL;return}if(tick%2===0)updateLiquid(x,y,1);return}
+    if(v===WAX){if(near(x,y,FIRE)||near(x,y,LAVA)){grid[i]=OIL;return}return}
+    if(v===FUSE){if(near(x,y,FIRE)||near(x,y,SPARK)){grid[i]=FIRE;life[i]=0}else updatePowder(x,y);return}
+    if(v===BOMB){if(near(x,y,FIRE)||near(x,y,SPARK)||near(x,y,LIGHTNING)||life[i]>1){if(life[i]>10)explode(x,y,15)}else{life[i]=0;updatePowder(x,y)}return}
+    if(v===MERCURY){if(near(x,y,SPARK)&&chance(.25))set(x,y,LIGHTNING);else updateLiquid(x,y,6);return}
+    if(v===FOAM){const p=near(x,y,FIRE);if(p){set(p[0],p[1],SMOKE);if(chance(.3))grid[i]=EMPTY;return}if(life[i]>500&&chance(.02)){grid[i]=EMPTY;return}if(tick%4===0)updateGas(x,y);return}
+    if(v===CLOUD){if(life[i]>100&&chance(.012))set(x,y,WATER);else if(tick%5===0)updateGas(x,y);return}
+    if(v===VIRUS){const immune=[EMPTY,VIRUS,VOID,RAINBOW,GLASS,METAL,OBSIDIAN];for(let yy=-1;yy<=1;yy++)for(let xx=-1;xx<=1;xx++){if(!inside(x+xx,y+yy))continue;const q=idx(x+xx,y+yy);if(!immune.includes(grid[q])&&chance(.035))set(x+xx,y+yy,VIRUS)}if(life[i]>450&&chance(.03))grid[i]=EMPTY;return}
+    if(v===ANTIMATTER){for(let yy=-2;yy<=2;yy++)for(let xx=-2;xx<=2;xx++){if(!inside(x+xx,y+yy)||(xx===0&&yy===0))continue;const q=idx(x+xx,y+yy);if(grid[q]!==EMPTY&&grid[q]!==ANTIMATTER&&chance(.3)){grid[q]=EMPTY;grid[i]=chance(.35)?LIGHTNING:EMPTY;return}}updatePowder(x,y);return}
+    if(v===CONCRETE){if(life[i]<90)updateLiquid(x,y,1);return}
   }
   function step(){tick++;const reverse=tick%2;for(let y=H-1;y>=0;y--){if(reverse){for(let x=0;x<W;x++)updateCell(x,y)}else{for(let x=W-1;x>=0;x--)updateCell(x,y)}}}
-  function render(){const img=ctx.createImageData(W,H),d=img.data;count=0;for(let i=0;i<N;i++){const v=grid[i];if(v)count++;let hex=color[v],n=parseInt(hex.slice(1),16);let r=n>>16,g=n>>8&255,b=n&255;if(v===RAINBOW){const h=(i*7+tick*4)%360;const c=`hsl(${h} 90% 60%)`;ctx.fillStyle=c;const m=c.match(/\d+/g);r=255*Math.abs(Math.sin(h*.017));g=255*Math.abs(Math.sin((h+120)*.017));b=255*Math.abs(Math.sin((h+240)*.017))}const noise=((i*13+tick*7)%9)-4;if(v!==EMPTY){r+=noise;g+=noise;b+=noise}d[i*4]=r;d[i*4+1]=g;d[i*4+2]=b;d[i*4+3]=255}ctx.putImageData(img,0,0);document.querySelector('#stats').textContent=`${count.toLocaleString()} particles`}
+  function render(){const img=ctx.createImageData(W,H),d=img.data;count=0;for(let i=0;i<N;i++){const v=grid[i];if(v)count++;let hex=color[v],n=parseInt(hex.slice(1),16);let r=n>>16,g=n>>8&255,b=n&255;if(v===RAINBOW){const h=(i*7+tick*4)%360;r=255*Math.abs(Math.sin(h*.017));g=255*Math.abs(Math.sin((h+120)*.017));b=255*Math.abs(Math.sin((h+240)*.017))}const noise=((i*13+v*17)%9)-4;if(v!==EMPTY){r+=noise;g+=noise;b+=noise}d[i*4]=r;d[i*4+1]=g;d[i*4+2]=b;d[i*4+3]=255}ctx.putImageData(img,0,0);document.querySelector('#stats').textContent=`${count.toLocaleString()} particles · ${W}×${H}`}
   let last=0;function loop(t){if(t-last>33){if(!paused)for(let i=0;i<speed;i++)step();render();last=t}requestAnimationFrame(loop)}
   function paint(e){const r=canvas.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)*W/r.width),y=Math.floor((e.clientY-r.top)*H/r.height),v=e.buttons===2?EMPTY:selected;for(let yy=-brush;yy<=brush;yy++)for(let xx=-brush;xx<=brush;xx++)if(xx*xx+yy*yy<=brush*brush&&inside(x+xx,y+yy)&&chance(.88))set(x+xx,y+yy,v)}
   canvas.addEventListener('pointerdown',e=>{drawing=true;canvas.setPointerCapture(e.pointerId);paint(e)});canvas.addEventListener('pointermove',e=>{if(drawing)paint(e)});canvas.addEventListener('pointerup',()=>drawing=false);canvas.addEventListener('pointercancel',()=>drawing=false);canvas.addEventListener('contextmenu',e=>e.preventDefault());
@@ -67,8 +79,10 @@
   document.querySelector('#pause').onclick=e=>{paused=!paused;e.currentTarget.textContent=paused?'▶ Play':'⏸ Pause'};
   document.querySelector('#speed').onclick=e=>{speed=speed===1?2:speed===2?4:1;e.currentTarget.textContent=`${speed}× Speed`};
   document.querySelector('#clear').onclick=()=>{if(confirm('Clear the entire world?')){grid.fill(0);life.fill(0)}};
-  document.querySelector('#save').onclick=()=>{localStorage.setItem('box-of-elements-save',JSON.stringify(Array.from(grid)));document.querySelector('#save').textContent='Saved!';setTimeout(()=>document.querySelector('#save').textContent='Save',900)};
-  document.querySelector('#load').onclick=()=>{try{const a=JSON.parse(localStorage.getItem('box-of-elements-save')||localStorage.getItem('living-worlds-save'));if(a&&a.length===N)grid.set(a)}catch{alert('That save could not be loaded.')}};
-  function seedWorld(){grid.fill(0);for(let x=0;x<W;x++){const ground=H-18+Math.floor(Math.sin(x*.13)*4+Math.random()*3);for(let y=ground;y<H;y++)set(x,y,y===ground?SOIL:STONE)}for(let x=8;x<55;x++)for(let y=H-30;y<H-20;y++)if((x-31)**2+(y-(H-20))**2<150)set(x,y,WATER);for(let i=0;i<30;i++)set(65+Math.floor(Math.random()*80),H-22-Math.floor(Math.random()*4),SEED);for(let i=0;i<8;i++)set(70+Math.floor(Math.random()*70),H-25,BUG)}
+  document.querySelector('#save').onclick=()=>{localStorage.setItem('box-of-elements-save',JSON.stringify({width:W,height:H,cells:Array.from(grid)}));document.querySelector('#save').textContent='Saved!';setTimeout(()=>document.querySelector('#save').textContent='Save',900)};
+  function resizeWorld(width,height,preserve=false){const old=grid,oldW=W,oldH=H;W=width;H=height;N=W*H;canvas.width=W;canvas.height=H;canvas.style.aspectRatio=`${W}/${H}`;grid=new Uint8Array(N);life=new Uint16Array(N);if(preserve){const copyW=Math.min(W,oldW),copyH=Math.min(H,oldH);for(let y=0;y<copyH;y++)grid.set(old.subarray(y*oldW,y*oldW+copyW),y*W)}}
+  document.querySelector('#mapSize').onchange=e=>{const [w,h]=e.target.value.split('x').map(Number);if(confirm(`Start a new ${e.target.options[e.target.selectedIndex].text.toLowerCase()} map?`)){resizeWorld(w,h);seedWorld()}else e.target.value=`${W}x${H}`};
+  document.querySelector('#load').onclick=()=>{try{const saved=JSON.parse(localStorage.getItem('box-of-elements-save')||localStorage.getItem('living-worlds-save'));const cells=Array.isArray(saved)?saved:saved?.cells;if(!cells)throw Error();if(!Array.isArray(saved)&&saved.width&&saved.height){resizeWorld(saved.width,saved.height);const option=`${W}x${H}`;if(document.querySelector(`#mapSize option[value="${option}"]`))document.querySelector('#mapSize').value=option}if(cells.length===N)grid.set(cells);else throw Error()}catch{alert('That save does not match this map size or could not be loaded.')}};
+  function seedWorld(){grid.fill(0);life.fill(0);const groundDepth=Math.max(18,Math.floor(H*.19));for(let x=0;x<W;x++){const ground=H-groundDepth+Math.floor(Math.sin(x*.13)*4+Math.random()*3);for(let y=ground;y<H;y++)set(x,y,y===ground?SOIL:STONE)}const pondX=Math.floor(W*.2),pondY=H-groundDepth-2;for(let x=pondX-24;x<pondX+24;x++)for(let y=pondY-10;y<pondY;y++)if((x-pondX)**2+(y-pondY)**2<180)set(x,y,WATER);for(let i=0;i<W/4;i++)set(Math.floor(W*.4)+Math.floor(Math.random()*W*.5),H-groundDepth-4-Math.floor(Math.random()*4),SEED);for(let i=0;i<W/20;i++)set(Math.floor(W*.45)+Math.floor(Math.random()*W*.45),H-groundDepth-7,BUG)}
   document.querySelector('#random').onclick=seedWorld;seedWorld();requestAnimationFrame(loop);
 })();
