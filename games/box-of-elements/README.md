@@ -5,7 +5,7 @@ An original falling-sand ecosystem and destruction sandbox built with plain HTML
 Open `index.html` directly, or serve the folder with:
 
 ```sh
-python3 -m http.server 8080 --directory living-worlds
+python3 -m http.server 8080 --directory box-of-elements
 ```
 
 Then visit http://localhost:8080.

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta name="theme-color" content="#07130f">
+  <title>Box of Elements</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body oncontextmenu="return false">
+  <header>
+    <div><h1>Box of Elements</h1><p>Mix nature, machines, and glorious chaos.</p></div>
+    <div class="actions">
+      <button id="pause" aria-label="Pause simulation">⏸ Pause</button>
+      <button id="speed" aria-label="Change simulation speed">1× Speed</button>
+      <button id="save" aria-label="Save world">Save</button>
+      <button id="load" aria-label="Load world">Load</button>
+      <button id="clear" class="danger" aria-label="Clear world">Clear</button>
+      <button id="options" aria-label="Open options">⚙ Options</button>
+    </div>
+  </header>
+  <main>
+    <section class="stage" aria-label="Simulation area">
+      <canvas id="world" width="240" height="144"></canvas>
+      <div id="inspector" hidden>Empty</div>
+      <div id="tip">Drag to paint · Right-click a particle for its controls</div>
+    </section>
+    <aside>
+      <div class="toolrow">
+        <label>Brush <input id="brush" type="range" min="1" max="9" value="4"><span id="brushValue">4</span></label>
+        <label class="temperature">Temperature <input id="temperature" type="range" min="-100" max="100" value="20" step="1" aria-label="World temperature"><output id="temperatureValue">20°C</output></label>
+        <label>Map <select id="mapSize" aria-label="Map size"><option value="240x144">Normal</option><option value="360x216">Large</option><option value="480x288">Huge</option><option value="720x432">Titanic</option></select></label>
+        <button id="random">Seed a world</button>
+        <button id="pinpointer" aria-pressed="false">⌖ Pinpointer</button>
+        <label>Draw <select id="drawTool"><option value="brush">Brush</option><option value="line">Line</option><option value="circle">Circle</option><option value="rectangle">Rectangle</option></select></label>
+        <button id="ruler" aria-pressed="false">📏 Ruler</button>
+      </div>
+      <div id="materials" class="materials" role="toolbar" aria-label="Materials"></div>
+      <div class="legend"><span id="selectedName">Sand</span><span id="stats">0 particles</span></div>
+    </aside>
+  </main>
+  <dialog id="optionsMenu">
+    <form method="dialog">
+      <h2>Simulation options</h2>
+      <label>Mineral reaction time <select id="mineralTime"><option value="90">Quick</option><option value="180" selected>Natural</option><option value="320">Slow</option></select></label>
+      <label><input id="showHidden" type="checkbox"> Show hidden reaction elements</label>
+      <label>Brush shape <select id="brushShape"><option value="circle">Round</option><option value="square">Square</option></select></label>
+      <label><input id="brushSolid" type="checkbox" checked> Solid, consistent brush</label>
+      <button value="close">Done</button>
+    </form>
+  </dialog>
+  <dialog id="elementMenu">
+    <form method="dialog">
+      <h2 id="elementMenuTitle">Element controls</h2>
+      <p id="elementMenuHint">These settings apply to every particle of this element.</p>
+      <label><input id="elementReactions" type="checkbox" checked> Allow reactions</label>
+      <label><input id="elementMovement" type="checkbox" checked> Allow natural movement</label>
+      <button value="close">Done</button>
+    </form>
+  </dialog>
+  <script src="game.js?v=7.0"></script>
+</body>
+</html>

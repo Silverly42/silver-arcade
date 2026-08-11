@@ -7,7 +7,7 @@ const html = fs.readFileSync(__dirname + '/index.html', 'utf8');
 
 test('Box of Elements exposes mineral alchemy, larger maps, and chaos interactions', () => {
   assert.match(html, /<title>Box of Elements<\/title>/);
-  assert.equal((js.match(/\['[^']+','#[0-9a-f]+'/gi) || []).length, 44);
+  assert.equal((js.match(/\['[^']+','#[0-9a-f]+'/gi) || []).length, 45);
   for (const element of ['TNT', 'Gunpowder', 'Void', 'Lightning', 'Slime', 'Rainbow', 'Snow', 'Mud', 'Wax', 'Fuse', 'Bomb', 'Mercury', 'Foam', 'Obsidian', 'Cloud', 'Virus', 'Antimatter', 'Concrete', 'Quartzite', 'Basalt', 'Sulfur', 'Copper Ore', 'Crystal']) {
     assert.match(js, new RegExp(`\\['${element}'`));
   }
@@ -19,8 +19,20 @@ test('Box of Elements exposes mineral alchemy, larger maps, and chaos interactio
   assert.match(js, /function resizeWorld\(/);
   assert.match(js, /const waterline=base-1/);
   assert.match(js, /set\(x,ground\[x\]-1,type\)/);
-  assert.match(js, /document\.addEventListener\('contextmenu'/);
+  assert.match(js, /window\.addEventListener\('contextmenu'/);
   assert.doesNotMatch(js, /i\*13\+tick\*7/);
+});
+
+test('grass, geometry tools, ruler, and element-aware controls are available', () => {
+  assert.match(js, /\['Grass'/);
+  assert.match(js, /grid\[i\]=GRASS/);
+  assert.match(html, /id="drawTool"/);
+  assert.match(html, /value="line"/);
+  assert.match(html, /value="circle"/);
+  assert.match(html, /value="rectangle"/);
+  assert.match(html, /id="ruler"/);
+  assert.match(js, /function nearestElement/);
+  assert.match(html, /oncontextmenu="return false"/);
 });
 
 test('physics and tools include delayed minerals, real strikes, inspector, falling plants, and continuous brush', () => {
