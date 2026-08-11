@@ -141,6 +141,9 @@ aside {
 .toolrow input {
   width: 72px;
 }
+.toolrow .temperature { flex:1 1 220px; }
+.toolrow .temperature input { width:min(180px,35vw); accent-color:var(--accent); }
+.toolrow output { min-width:45px; color:var(--ink); font-weight:800; }
 .toolrow select {
   border: 1px solid var(--edge);
   background: #153126;

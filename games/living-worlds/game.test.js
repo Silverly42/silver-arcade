@@ -43,4 +43,7 @@ test('common materials have grounded physical reactions', () => {
   assert.doesNotMatch(js, /v===MERCURY.*set\(x,y,LIGHTNING\)/);
   assert.match(js, /v===QUARTZITE.*grid\[i\]=CRYSTAL/);
   assert.match(js, /v===COPPER_ORE.*grid\[i\]=METAL/);
+  assert.match(html, /id="temperature"[^>]+min="-100"[^>]+max="100"/);
+  assert.match(js, /ambientTemp<0.*set\(x,y,ICE\)/);
+  assert.doesNotMatch(js, /if\(chance\(\.0003\)\)set\(x,y,ICE\)/);
 });
