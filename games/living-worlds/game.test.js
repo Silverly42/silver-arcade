@@ -14,6 +14,7 @@ test('Box of Elements exposes mineral alchemy, larger maps, and chaos interactio
   assert.match(js, /function explode\(/);
   assert.match(js, /localStorage\.getItem\('living-worlds-save'\)/);
   assert.match(html, /value="320x192">Huge/);
+  assert.match(html, /value="640x384">Titanic/);
   assert.match(js, /function resizeWorld\(/);
   assert.doesNotMatch(js, /i\*13\+tick\*7/);
 });
@@ -26,6 +27,9 @@ test('physics and tools include delayed minerals, real strikes, inspector, falli
   assert.match(js, /if\(life\[i\]<22&&empty\(x,y\+1\)\)/);
   assert.match(js, /steps=Math\.max\(1,Math\.ceil/);
   assert.match(js, /if\(i===CLONE\)return/);
+  assert.match(js, /function openElementMenu/);
+  assert.match(js, /lastTapAt<420/);
+  assert.match(html, /id="showHidden"/);
 });
 
 test('common materials have grounded physical reactions', () => {
@@ -37,4 +41,6 @@ test('common materials have grounded physical reactions', () => {
   assert.match(js, /const salt=near\(x,y,SALT\)/);
   assert.match(js, /v===MUD.*hot\(x,y\).*grid\[i\]=STONE/);
   assert.doesNotMatch(js, /v===MERCURY.*set\(x,y,LIGHTNING\)/);
+  assert.match(js, /v===QUARTZITE.*grid\[i\]=CRYSTAL/);
+  assert.match(js, /v===COPPER_ORE.*grid\[i\]=METAL/);
 });

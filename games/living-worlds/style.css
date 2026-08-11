@@ -23,7 +23,7 @@ body {
 }
 header,
 main {
-  width: min(1200px, 100%);
+  width: min(1600px, 100%);
   margin: auto;
 }
 header {
@@ -73,7 +73,7 @@ button:active {
 }
 main {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 280px;
+  grid-template-columns: minmax(0, 1fr) 340px;
   gap: 14px;
 }
 .stage,
@@ -89,12 +89,12 @@ aside {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 420px;
+  min-height: min(720px, calc(100vh - 135px));
 }
 canvas {
   width: 100%;
   height: auto;
-  max-height: calc(100vh - 150px);
+  max-height: calc(100vh - 130px);
   aspect-ratio: 5/3;
   image-rendering: pixelated;
   cursor: crosshair;
@@ -119,6 +119,7 @@ dialog::backdrop { background:#0009; }
 dialog form { display:grid; gap:14px; min-width:min(330px,80vw); }
 dialog h2 { margin:0; color:var(--accent); }
 dialog label { display:flex; align-items:center; justify-content:space-between; gap:18px; }
+dialog p { max-width:360px; margin:0; }
 dialog select { background:#153126; color:var(--ink); border:1px solid var(--edge); border-radius:7px; padding:6px; }
 aside {
   padding: 12px;
@@ -153,6 +154,7 @@ aside {
   gap: 7px;
   overflow: auto;
 }
+.material.hidden-element { display:none; }
 .material {
   min-height: 52px;
   padding: 5px 3px;
