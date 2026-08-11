@@ -9,10 +9,9 @@
     for(const s of solids)if(overlap(body,s)){if(dy>0){body.y=s.y-body.h;body.grounded=true;}else if(dy<0)body.y=s.y+s.h;body.vy=0;}
     return body;
   }
-  function fixedJump(body,direction){if(!body.grounded)return false;body.vy=-4.2;body.jumpVx=direction*1.25;body.grounded=false;return true;}
+  function fixedJump(body,direction,forgiving=false){if(!body.grounded&&!forgiving)return false;body.vy=-4.65;body.jumpVx=direction*1.6;body.grounded=false;return true;}
   function canDamage(player){return player.invuln<=0&&player.state==='alive';}
-  function applyHit(player){if(!canDamage(player))return 'ignored';player.invuln=90;player.vy=-3.8;if(player.armoured){player.armoured=false;return 'armour';}player.state='dead';player.deathTimer=75;player.lives--;return 'death';}
+  function applyHit(player){if(!canDamage(player))return 'ignored';player.invuln=75;player.vy=-3.8;if(player.armoured){player.armoured=false;return 'armour';}player.state='dead';player.deathTimer=48;player.lives--;return 'death';}
   function projectileHit(p,target){return p.alive&&overlap({x:p.x-p.r,y:p.y-p.r,w:p.r*2,h:p.r*2},target);}
   return {clamp,overlap,moveAndCollide,fixedJump,canDamage,applyHit,projectileHit};
 });
-
