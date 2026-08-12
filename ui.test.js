@@ -13,6 +13,11 @@ test("arcade homepage launches Vector Frontline", () => {
   assert.match(html, /href="games\/vector-frontline\/"/);
   assert.match(html, /<h2>Vector Frontline<\/h2>/);
 });
+test("arcade homepage launches Box of Elements", () => {
+  const html = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");
+  assert.match(html, /href="games\/box-of-elements\/"/);
+  assert.match(html, /<h2>Box of Elements<\/h2>/);
+});
 test("build identifier is visible and multiplayer controls are disabled", () => {
   const version = fs.readFileSync(path.join(root, "version.js"), "utf8"),
     html = fs.readFileSync(path.join(root, "index.html"), "utf8");
