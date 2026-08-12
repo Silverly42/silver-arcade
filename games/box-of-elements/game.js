@@ -17,12 +17,14 @@
     ['Antivirus','#45d6ff'],['Nuke Powder','#ffe42e']
   ];
   const color = mats.map(m => m[1]);
+  const palette=color.map(hex=>{const n=parseInt(hex.slice(1),16);return[n>>16,n>>8&255,n&255]});
   let grid = new Uint8Array(N), life = new Uint16Array(N);
   let selected=SAND, brush=4, paused=false, speed=1, drawing=false, count=0, tick=0, inspectMode=false, lastPaint=null;
   let mineralTime=180, ambientTemp=20, brushShape='circle', brushSolid=true, drawTool='brush', shapeStart=null,previewEnd=null;
   const reactionEnabled=new Uint8Array(256).fill(1),movementEnabled=new Uint8Array(256).fill(1);
   const hiddenElements=new Set([QUARTZITE,BASALT,SULFUR,COPPER_ORE,CRYSTAL,OBSIDIAN]);
   let contextElement=EMPTY,lastMaterialTapAt=0,lastMaterialTap=-1;
+  const stats=document.querySelector('#stats');let frameImage=ctx.createImageData(W,H),lastStats=0;
   const idx=(x,y)=>x+y*W, inside=(x,y)=>x>=0&&x<W&&y>=0&&y<H;
   const swap=(a,b)=>{const g=grid[a],l=life[a];grid[a]=grid[b];life[a]=life[b];grid[b]=g;life[b]=l};
   const set=(x,y,v,age=0)=>{if(inside(x,y)){const i=idx(x,y);grid[i]=v;life[i]=age}};
@@ -98,9 +100,9 @@
     if(v===CRYSTAL){growReactionPatch(x,y,CRYSTAL,[QUARTZITE,SALT]);if(reactionEnabled[v]&&near(x,y,LIGHTNING)&&chance(.12))set(x,y,SPARK);return}
   }
   function step(){tick++;const reverse=tick%2;for(let y=H-1;y>=0;y--){if(reverse){for(let x=0;x<W;x++)updateCell(x,y)}else{for(let x=W-1;x>=0;x--)updateCell(x,y)}}}
-  function render(){const img=ctx.createImageData(W,H),d=img.data;count=0;for(let i=0;i<N;i++){const v=grid[i];if(v)count++;let hex=color[v],n=parseInt(hex.slice(1),16);let r=n>>16,g=n>>8&255,b=n&255;if(v===RAINBOW){const h=(i*7+tick*4)%360;r=255*Math.abs(Math.sin(h*.017));g=255*Math.abs(Math.sin((h+120)*.017));b=255*Math.abs(Math.sin((h+240)*.017))}if(v===FIRE){const heat=Math.min(1,life[i]/55);r=255;g=190-heat*135;b=45-heat*35}const noise=((i*13+v*17)%9)-4;if(v!==EMPTY&&v!==LIGHTNING){r+=noise;g+=noise;b+=noise}d[i*4]=r;d[i*4+1]=g;d[i*4+2]=b;d[i*4+3]=255}ctx.putImageData(img,0,0);drawPreview();document.querySelector('#stats').textContent=`${count.toLocaleString()} particles · ${W}×${H}`}
+  function render(now){const d=frameImage.data;count=0;for(let i=0;i<N;i++){const v=grid[i];if(v)count++;let [r,g,b]=palette[v];if(v===RAINBOW){const h=(i*7+tick*4)%360;r=255*Math.abs(Math.sin(h*.017));g=255*Math.abs(Math.sin((h+120)*.017));b=255*Math.abs(Math.sin((h+240)*.017))}if(v===FIRE){const heat=Math.min(1,life[i]/55);r=255;g=190-heat*135;b=45-heat*35}const noise=v!==EMPTY&&v!==LIGHTNING?((i*13+v*17)%9)-4:0,q=i*4;d[q]=r+noise;d[q+1]=g+noise;d[q+2]=b+noise;d[q+3]=255}ctx.putImageData(frameImage,0,0);drawPreview();if(now-lastStats>250){stats.textContent=`${count.toLocaleString()} particles · ${W}×${H}`;lastStats=now}}
   function drawPreview(){if(!drawing||drawTool==='brush'||!shapeStart||!previewEnd)return;const a=shapeStart,b=previewEnd,dx=b.x-a.x,dy=b.y-a.y;ctx.save();ctx.strokeStyle=color[selected];ctx.globalAlpha=.82;ctx.lineWidth=Math.max(1,brush*2);ctx.setLineDash([3,2]);ctx.beginPath();if(drawTool==='line'){ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y)}else if(drawTool==='rectangle')ctx.rect(Math.min(a.x,b.x),Math.min(a.y,b.y),Math.abs(dx),Math.abs(dy));else ctx.ellipse(a.x,a.y,Math.abs(dx),Math.abs(dy),0,0,Math.PI*2);ctx.stroke();ctx.restore()}
-  let last=0;function loop(t){if(t-last>33){if(!paused)for(let i=0;i<speed;i++)step();render();last=t}requestAnimationFrame(loop)}
+  let last=0;function loop(t){const interval=N>200000?100:N>90000?67:N>50000?50:matchMedia('(pointer:coarse)').matches?42:33;if(t-last>interval){if(!paused)for(let i=0;i<speed;i++)step();render(t);last=t}requestAnimationFrame(loop)}
   function stamp(x,y,v){for(let yy=-brush;yy<=brush;yy++)for(let xx=-brush;xx<=brush;xx++){const inShape=brushShape==='square'||xx*xx+yy*yy<=brush*brush;if(inShape&&inside(x+xx,y+yy)&&(brushSolid||chance(.88)))set(x+xx,y+yy,v)}}
   function strikeLightning(targetX,targetY){let x=Math.max(1,Math.min(W-2,targetX));for(let y=0;y<=targetY&&y<H;y++){x=Math.max(1,Math.min(W-2,x+(chance(.42)?(chance(.5)?-1:1):0)));set(x,y,LIGHTNING);if(chance(.12)&&inside(x+(chance(.5)?-1:1),y))set(x+(chance(.5)?-1:1),y,LIGHTNING);const below=y+1<H?grid[idx(x,y+1)]:STONE;if(below!==EMPTY&&below!==LIGHTNING){burnAround(x,y);if(below===TNT||below===BOMB)life[idx(x,y+1)]=2;break}}}
   function pointerCell(e){const r=canvas.getBoundingClientRect();return {x:Math.floor((e.clientX-r.left)*W/r.width),y:Math.floor((e.clientY-r.top)*H/r.height),r}}
@@ -127,7 +129,7 @@
   document.querySelector('#drawTool').onchange=e=>drawTool=e.target.value;
   document.querySelector('#clear').onclick=()=>{if(confirm('Clear the entire world?')){grid.fill(0);life.fill(0)}};
   document.querySelector('#save').onclick=()=>{localStorage.setItem('box-of-elements-save',JSON.stringify({width:W,height:H,cells:Array.from(grid)}));document.querySelector('#save').textContent='Saved!';setTimeout(()=>document.querySelector('#save').textContent='Save',900)};
-  function resizeWorld(width,height,preserve=false){const old=grid,oldW=W,oldH=H;W=width;H=height;N=W*H;canvas.width=W;canvas.height=H;canvas.style.aspectRatio=`${W}/${H}`;grid=new Uint8Array(N);life=new Uint16Array(N);if(preserve){const copyW=Math.min(W,oldW),copyH=Math.min(H,oldH);for(let y=0;y<copyH;y++)grid.set(old.subarray(y*oldW,y*oldW+copyW),y*W)}}
+  function resizeWorld(width,height,preserve=false){const old=grid,oldW=W,oldH=H;W=width;H=height;N=W*H;canvas.width=W;canvas.height=H;canvas.style.aspectRatio=`${W}/${H}`;grid=new Uint8Array(N);life=new Uint16Array(N);frameImage=ctx.createImageData(W,H);if(preserve){const copyW=Math.min(W,oldW),copyH=Math.min(H,oldH);for(let y=0;y<copyH;y++)grid.set(old.subarray(y*oldW,y*oldW+copyW),y*W)}}
   document.querySelector('#mapSize').onchange=e=>{const [w,h]=e.target.value.split('x').map(Number);if(confirm(`Start a new ${e.target.options[e.target.selectedIndex].text.toLowerCase()} map?`)){resizeWorld(w,h);seedWorld()}else e.target.value=`${W}x${H}`};
   document.querySelector('#load').onclick=()=>{try{const saved=JSON.parse(localStorage.getItem('box-of-elements-save')||localStorage.getItem('living-worlds-save'));const cells=Array.isArray(saved)?saved:saved?.cells;if(!cells)throw Error();if(!Array.isArray(saved)&&saved.width&&saved.height){resizeWorld(saved.width,saved.height);const option=`${W}x${H}`;if(document.querySelector(`#mapSize option[value="${option}"]`))document.querySelector('#mapSize').value=option}if(cells.length===N)grid.set(cells);else throw Error()}catch{alert('That save does not match this map size or could not be loaded.')}};
   function seedWorld(){

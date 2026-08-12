@@ -74,6 +74,7 @@ test('fire favors downward spread and mineral reactions grow into capped deposit
   assert.match(js, /growReactionPatch\(x,y,OBSIDIAN,\[LAVA\],30,36\)/);
   assert.match(js, /growReactionPatch\(x,y,CRYSTAL,\[QUARTZITE,SALT\]\)/);
 });
+test('mobile performance uses cached pixels and adaptive frame rates',()=>{assert.match(js,/frameImage=ctx\.createImageData/);assert.match(js,/const palette=color\.map/);assert.match(js,/pointer:coarse/);assert.match(js,/N>200000\?100/);assert.match(html,/game\.js\?v=8\.2/)});
 
 test('antivirus, nuke powder, previews, and mobile material options are available', () => {
   assert.match(js, /\['Antivirus','#45d6ff'\]/);
