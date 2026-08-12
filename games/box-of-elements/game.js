@@ -44,6 +44,8 @@
   function updateLiquid(x,y,range=3){if(move(x,y,x,y+1))return;const d=chance(.5)?-1:1;for(let s=1;s<=range;s++)if(move(x,y,x+d*s,y)){return}for(let s=1;s<=range;s++)if(move(x,y,x-d*s,y)){return}}
   function updateGas(x,y){const d=Math.floor(Math.random()*3)-1;if(move(x,y,x+d,y-1))return;move(x,y,x+(chance(.5)?-1:1),y);}
   function near(x,y,type){for(let yy=-1;yy<=1;yy++)for(let xx=-1;xx<=1;xx++)if((xx||yy)&&inside(x+xx,y+yy)&&grid[idx(x+xx,y+yy)]===type)return [x+xx,y+yy];return null}
+  function nearestVirus(x,y,radius=18){let target=null,best=Infinity;for(let yy=-radius;yy<=radius;yy++)for(let xx=-radius;xx<=radius;xx++){const d=Math.abs(xx)+Math.abs(yy);if(d>=best||!inside(x+xx,y+yy))continue;if(grid[idx(x+xx,y+yy)]===VIRUS){best=d;target=[x+xx,y+yy]}}return target}
+  function huntVirus(x,y){const target=nearestVirus(x,y);if(!target)return;for(let stride=0;stride<2;stride++){const dx=Math.sign(target[0]-x),dy=Math.sign(target[1]-y);if(Math.abs(target[0]-x)<=1&&Math.abs(target[1]-y)<=1){set(target[0],target[1],EMPTY);return}const moves=Math.abs(target[0]-x)>Math.abs(target[1]-y)?[[dx,0],[0,dy],[dx,dy]]:[[0,dy],[dx,0],[dx,dy]];for(const [mx,my] of moves)if((mx||my)&&move(x,y,x+mx,y+my)){x+=mx;y+=my;break}}}
   const hot=(x,y)=>near(x,y,FIRE)||near(x,y,LAVA)||near(x,y,LIGHTNING);
   function burnAround(x,y){for(let yy=-1;yy<=2;yy++)for(let xx=-1;xx<=1;xx++){if(!inside(x+xx,y+yy))continue;const i=idx(x+xx,y+yy),v=grid[i];if(!reactionEnabled[v])continue;const burnChance=v===OIL?.38:(v===POWDER||v===FUSE)?.86:v===PLANT||v===SEED?.12:v===WOOD?.065:v===WAX?.09:0,downBoost=yy>0?2.35:1;if(burnChance&&chance(Math.min(.98,burnChance*downBoost))){grid[i]=FIRE;life[i]=0}if(v===TNT||v===BOMB)life[i]=Math.max(life[i],1)}}
   function growReactionPatch(x,y,product,sources,max=30,delay=12){
@@ -85,7 +87,7 @@
     if(v===FOAM){const p=near(x,y,FIRE);if(p){set(p[0],p[1],SMOKE);if(chance(.3))grid[i]=EMPTY;return}if(life[i]>500&&chance(.02)){grid[i]=EMPTY;return}if(tick%4===0)updateGas(x,y);return}
     if(v===CLOUD){if(life[i]>100&&chance(.012))set(x,y,WATER);else if(tick%5===0)updateGas(x,y);return}
     if(v===VIRUS){if(near(x,y,ANTIVIRUS)){grid[i]=EMPTY;return}const immune=[EMPTY,VIRUS,ANTIVIRUS,VOID,RAINBOW,GLASS,METAL,OBSIDIAN];for(let yy=-1;yy<=1;yy++)for(let xx=-1;xx<=1;xx++){if(!inside(x+xx,y+yy))continue;const q=idx(x+xx,y+yy);if(!immune.includes(grid[q])&&chance(.035))set(x+xx,y+yy,VIRUS)}if(life[i]>450&&chance(.03))grid[i]=EMPTY;return}
-    if(v===ANTIVIRUS){for(let yy=-2;yy<=2;yy++)for(let xx=-2;xx<=2;xx++){if(!inside(x+xx,y+yy))continue;const q=idx(x+xx,y+yy);if(grid[q]===VIRUS&&chance(.32))grid[q]=EMPTY}updateLiquid(x,y,2);return}
+    if(v===ANTIVIRUS){huntVirus(x,y);return}
     if(v===ANTIMATTER){for(let yy=-2;yy<=2;yy++)for(let xx=-2;xx<=2;xx++){if(!inside(x+xx,y+yy)||(xx===0&&yy===0))continue;const q=idx(x+xx,y+yy);if(grid[q]!==EMPTY&&grid[q]!==ANTIMATTER&&chance(.3)){grid[q]=EMPTY;grid[i]=chance(.35)?LIGHTNING:EMPTY;return}}updatePowder(x,y);return}
     if(v===CONCRETE){if(life[i]<90)updateLiquid(x,y,1);return}
     if(v===OBSIDIAN){growReactionPatch(x,y,OBSIDIAN,[LAVA],30,36);return}

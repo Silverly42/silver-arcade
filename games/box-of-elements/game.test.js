@@ -79,6 +79,10 @@ test('antivirus, nuke powder, previews, and mobile material options are availabl
   assert.match(js, /\['Antivirus','#45d6ff'\]/);
   assert.match(js, /\['Nuke Powder','#ffe42e'\]/);
   assert.match(js, /if\(v===ANTIVIRUS\)/);
+  assert.match(js, /function nearestVirus\(x,y,radius=18\)/);
+  assert.match(js, /function huntVirus\(x,y\)/);
+  assert.match(js, /for\(let stride=0;stride<2;stride\+\+\)/);
+  assert.match(js, /if\(v===ANTIVIRUS\)\{huntVirus\(x,y\);return\}/);
   assert.match(js, /if\(v===NUKE_POWDER\)/);
   assert.match(js, /explode\(x,y,24\)/);
   assert.match(js, /function drawPreview\(\)/);
