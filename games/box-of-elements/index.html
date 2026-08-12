@@ -23,7 +23,7 @@
     <section class="stage" aria-label="Simulation area">
       <canvas id="world" width="240" height="144"></canvas>
       <div id="inspector" hidden>Empty</div>
-      <div id="tip">Drag to paint · Right-click a particle for its controls</div>
+      <div id="tip">Drag to paint · Right-click a particle, or double-tap an element button, for controls</div>
     </section>
     <aside>
       <div class="toolrow">
@@ -33,7 +33,6 @@
         <button id="random">Seed a world</button>
         <button id="pinpointer" aria-pressed="false">⌖ Pinpointer</button>
         <label>Draw <select id="drawTool"><option value="brush">Brush</option><option value="line">Line</option><option value="circle">Circle</option><option value="rectangle">Rectangle</option></select></label>
-        <button id="ruler" aria-pressed="false">📏 Ruler</button>
       </div>
       <div id="materials" class="materials" role="toolbar" aria-label="Materials"></div>
       <div class="legend"><span id="selectedName">Sand</span><span id="stats">0 particles</span></div>
@@ -58,6 +57,6 @@
       <button value="close">Done</button>
     </form>
   </dialog>
-  <script src="game.js?v=7.1"></script>
+  <script src="game.js?v=8.0"></script>
 </body>
 </html>

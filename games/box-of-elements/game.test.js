@@ -7,7 +7,7 @@ const html = fs.readFileSync(__dirname + '/index.html', 'utf8');
 
 test('Box of Elements exposes mineral alchemy, larger maps, and chaos interactions', () => {
   assert.match(html, /<title>Box of Elements<\/title>/);
-  assert.equal((js.match(/\['[^']+','#[0-9a-f]+'/gi) || []).length, 45);
+  assert.equal((js.match(/\['[^']+','#[0-9a-f]+'/gi) || []).length, 47);
   for (const element of ['TNT', 'Gunpowder', 'Void', 'Lightning', 'Slime', 'Rainbow', 'Snow', 'Mud', 'Wax', 'Fuse', 'Bomb', 'Mercury', 'Foam', 'Obsidian', 'Cloud', 'Virus', 'Antimatter', 'Concrete', 'Quartzite', 'Basalt', 'Sulfur', 'Copper Ore', 'Crystal']) {
     assert.match(js, new RegExp(`\\['${element}'`));
   }
@@ -23,14 +23,14 @@ test('Box of Elements exposes mineral alchemy, larger maps, and chaos interactio
   assert.doesNotMatch(js, /i\*13\+tick\*7/);
 });
 
-test('grass, geometry tools, ruler, and element-aware controls are available', () => {
+test('grass, geometry tools, previews, and element-aware controls are available', () => {
   assert.match(js, /\['Grass'/);
   assert.match(js, /grid\[i\]=GRASS/);
   assert.match(html, /id="drawTool"/);
   assert.match(html, /value="line"/);
   assert.match(html, /value="circle"/);
   assert.match(html, /value="rectangle"/);
-  assert.match(html, /id="ruler"/);
+  assert.doesNotMatch(html, /id="ruler"/);
   assert.match(js, /function nearestElement/);
   assert.match(html, /oncontextmenu="return false"/);
 });
@@ -44,7 +44,7 @@ test('physics and tools include delayed minerals, real strikes, inspector, falli
   assert.match(js, /steps=Math\.max\(1,Math\.ceil/);
   assert.match(js, /if\(i===CLONE\)return/);
   assert.match(js, /function openElementMenu/);
-  assert.match(js, /lastTapAt<420/);
+  assert.match(js, /lastMaterialTapAt<420/);
   assert.match(html, /id="showHidden"/);
 });
 
@@ -68,9 +68,22 @@ test('common materials have grounded physical reactions', () => {
 test('fire favors downward spread and mineral reactions grow into capped deposits', () => {
   assert.match(js, /yy<=2/);
   assert.match(js, /downBoost=yy>0\?2\.35:1/);
-  assert.match(js, /function growReactionPatch\(x,y,product,sources,max=30\)/);
+  assert.match(js, /function growReactionPatch\(x,y,product,sources,max=30,delay=12\)/);
   assert.match(js, /if\(total>=max\)return/);
   assert.match(js, /growReactionPatch\(x,y,QUARTZITE,\[SAND\]\)/);
-  assert.match(js, /growReactionPatch\(x,y,OBSIDIAN,\[LAVA\]\)/);
+  assert.match(js, /growReactionPatch\(x,y,OBSIDIAN,\[LAVA\],30,36\)/);
   assert.match(js, /growReactionPatch\(x,y,CRYSTAL,\[QUARTZITE,SALT\]\)/);
+});
+
+test('antivirus, nuke powder, previews, and mobile material options are available', () => {
+  assert.match(js, /\['Antivirus','#45d6ff'\]/);
+  assert.match(js, /\['Nuke Powder','#ffe42e'\]/);
+  assert.match(js, /if\(v===ANTIVIRUS\)/);
+  assert.match(js, /if\(v===NUKE_POWDER\)/);
+  assert.match(js, /explode\(x,y,24\)/);
+  assert.match(js, /function drawPreview\(\)/);
+  assert.match(js, /lastMaterialTap===i/);
+  assert.doesNotMatch(html, /id="ruler"/);
+  assert.doesNotMatch(js, /rulerMode/);
+  assert.match(js, /OBSIDIAN,\[LAVA\],30,36/);
 });
