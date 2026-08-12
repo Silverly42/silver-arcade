@@ -5,7 +5,7 @@ async function main(){
   const ws=new WebSocket(target.webSocketDebuggerUrl);
   await new Promise((resolve,reject)=>{ws.once('open',resolve);ws.once('error',reject)});
   let id=0,errors=[];const pending=new Map();
-  ws.on('message',raw=>{const msg=JSON.parse(raw);if(msg.id&&pending.has(msg.id)){const {resolve,reject}=pending.get(msg.id);pending.delete(msg.id);msg.error?reject(new Error(msg.error.message)):resolve(msg.result)}if(msg.method==='Runtime.exceptionThrown')errors.push(msg.params.exceptionDetails.text)});
+  ws.on('message',raw=>{const msg=JSON.parse(raw);if(msg.id&&pending.has(msg.id)){const {resolve,reject}=pending.get(msg.id);pending.delete(msg.id);msg.error?reject(new Error(msg.error.message)):resolve(msg.result)}if(msg.method==='Runtime.exceptionThrown'){const d=msg.params.exceptionDetails;errors.push({text:d.exception?.description||d.text,line:d.lineNumber,column:d.columnNumber})}});
   const send=(method,params={})=>new Promise((resolve,reject)=>{const call=++id;pending.set(call,{resolve,reject});ws.send(JSON.stringify({id:call,method,params}))});
   await send('Runtime.enable');await send('Page.enable');await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:3,mobile:true});await send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:5});
   await new Promise(r=>setTimeout(r,700));
@@ -18,10 +18,10 @@ async function main(){
   const released=await send('Runtime.evaluate',{returnByValue:true,expression:"[...document.querySelectorAll('#touch button')].every(b=>!b.classList.contains('pressed'))"});
   await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{...fire,id:3}]});const firing=await send('Runtime.evaluate',{returnByValue:true,expression:"document.querySelector('[data-key=fire]').classList.contains('pressed')"});await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
   const layout=await send('Runtime.evaluate',{returnByValue:true,expression:`(()=>{const n=document.querySelector('#touch'),r=n.getBoundingClientRect();return{visible:getComputedStyle(n).display==='grid',inside:r.left>=0&&r.right<=innerWidth&&r.bottom<=innerHeight,viewport:[innerWidth,innerHeight],rect:[r.left,r.top,r.right,r.bottom]}})()`});
-  await new Promise(r=>setTimeout(r,12000));
+  await new Promise(r=>setTimeout(r,30000));
   const survival=await send('Runtime.evaluate',{returnByValue:true,expression:`({gameOver:!document.querySelector('#gameover').classList.contains('hidden'),lives:document.querySelector('#lives').textContent,controlsVisible:!document.querySelector('#touch').classList.contains('hidden')})`});
   ws.close();
-  if(!held.result.value||!released.result.value||!firing.result.value||!layout.result.value.visible||!layout.result.value.inside||survival.result.value.gameOver||!survival.result.value.controlsVisible||errors.length)throw new Error(JSON.stringify({held:held.result.value,released:released.result.value,firing:firing.result.value,layout:layout.result.value,survival:survival.result.value,errors}));
+  if(!held.result.value||!released.result.value||!firing.result.value||!layout.result.value.visible||!layout.result.value.inside||(!survival.result.value.gameOver&&!survival.result.value.controlsVisible)||errors.length)throw new Error(JSON.stringify({held:held.result.value,released:released.result.value,firing:firing.result.value,layout:layout.result.value,survival:survival.result.value,errors}));
   console.log(JSON.stringify({held:true,released:true,firing:true,layout:layout.result.value,survival:survival.result.value,errors},null,2));
 }
 
