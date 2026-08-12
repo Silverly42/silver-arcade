@@ -18,9 +18,11 @@ async function main(){
   const released=await send('Runtime.evaluate',{returnByValue:true,expression:"[...document.querySelectorAll('#touch button')].every(b=>!b.classList.contains('pressed'))"});
   await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{...fire,id:3}]});const firing=await send('Runtime.evaluate',{returnByValue:true,expression:"document.querySelector('[data-key=fire]').classList.contains('pressed')"});await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
   const layout=await send('Runtime.evaluate',{returnByValue:true,expression:`(()=>{const n=document.querySelector('#touch'),r=n.getBoundingClientRect();return{visible:getComputedStyle(n).display==='grid',inside:r.left>=0&&r.right<=innerWidth&&r.bottom<=innerHeight,viewport:[innerWidth,innerHeight],rect:[r.left,r.top,r.right,r.bottom]}})()`});
+  await new Promise(r=>setTimeout(r,12000));
+  const survival=await send('Runtime.evaluate',{returnByValue:true,expression:`({gameOver:!document.querySelector('#gameover').classList.contains('hidden'),lives:document.querySelector('#lives').textContent,controlsVisible:!document.querySelector('#touch').classList.contains('hidden')})`});
   ws.close();
-  if(!held.result.value||!released.result.value||!firing.result.value||!layout.result.value.visible||!layout.result.value.inside||errors.length)throw new Error(JSON.stringify({held:held.result.value,released:released.result.value,firing:firing.result.value,layout:layout.result.value,errors}));
-  console.log(JSON.stringify({held:true,released:true,firing:true,layout:layout.result.value,errors},null,2));
+  if(!held.result.value||!released.result.value||!firing.result.value||!layout.result.value.visible||!layout.result.value.inside||survival.result.value.gameOver||!survival.result.value.controlsVisible||errors.length)throw new Error(JSON.stringify({held:held.result.value,released:released.result.value,firing:firing.result.value,layout:layout.result.value,survival:survival.result.value,errors}));
+  console.log(JSON.stringify({held:true,released:true,firing:true,layout:layout.result.value,survival:survival.result.value,errors},null,2));
 }
 
 main().catch(e=>{console.error(e);process.exitCode=1});
