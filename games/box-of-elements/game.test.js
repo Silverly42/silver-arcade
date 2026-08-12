@@ -64,3 +64,13 @@ test('common materials have grounded physical reactions', () => {
   assert.match(js, /ambientTemp<0.*set\(x,y,ICE\)/);
   assert.doesNotMatch(js, /if\(chance\(\.0003\)\)set\(x,y,ICE\)/);
 });
+
+test('fire favors downward spread and mineral reactions grow into capped deposits', () => {
+  assert.match(js, /yy<=2/);
+  assert.match(js, /downBoost=yy>0\?2\.35:1/);
+  assert.match(js, /function growReactionPatch\(x,y,product,sources,max=30\)/);
+  assert.match(js, /if\(total>=max\)return/);
+  assert.match(js, /growReactionPatch\(x,y,QUARTZITE,\[SAND\]\)/);
+  assert.match(js, /growReactionPatch\(x,y,OBSIDIAN,\[LAVA\]\)/);
+  assert.match(js, /growReactionPatch\(x,y,CRYSTAL,\[QUARTZITE,SALT\]\)/);
+});

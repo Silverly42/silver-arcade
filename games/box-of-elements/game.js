@@ -44,7 +44,15 @@
   function updateGas(x,y){const d=Math.floor(Math.random()*3)-1;if(move(x,y,x+d,y-1))return;move(x,y,x+(chance(.5)?-1:1),y);}
   function near(x,y,type){for(let yy=-1;yy<=1;yy++)for(let xx=-1;xx<=1;xx++)if((xx||yy)&&inside(x+xx,y+yy)&&grid[idx(x+xx,y+yy)]===type)return [x+xx,y+yy];return null}
   const hot=(x,y)=>near(x,y,FIRE)||near(x,y,LAVA)||near(x,y,LIGHTNING);
-  function burnAround(x,y){for(let yy=-1;yy<=1;yy++)for(let xx=-1;xx<=1;xx++){if(!inside(x+xx,y+yy))continue;const i=idx(x+xx,y+yy),v=grid[i];if(!reactionEnabled[v])continue;const burnChance=v===OIL?.38:(v===POWDER||v===FUSE)?.86:v===PLANT||v===SEED?.12:v===WOOD?.065:v===WAX?.09:0;if(burnChance&&chance(burnChance)){grid[i]=FIRE;life[i]=0}if(v===TNT||v===BOMB)life[i]=Math.max(life[i],1)}}
+  function burnAround(x,y){for(let yy=-1;yy<=2;yy++)for(let xx=-1;xx<=1;xx++){if(!inside(x+xx,y+yy))continue;const i=idx(x+xx,y+yy),v=grid[i];if(!reactionEnabled[v])continue;const burnChance=v===OIL?.38:(v===POWDER||v===FUSE)?.86:v===PLANT||v===SEED?.12:v===WOOD?.065:v===WAX?.09:0,downBoost=yy>0?2.35:1;if(burnChance&&chance(Math.min(.98,burnChance*downBoost))){grid[i]=FIRE;life[i]=0}if(v===TNT||v===BOMB)life[i]=Math.max(life[i],1)}}
+  function growReactionPatch(x,y,product,sources,max=30){
+    if(life[idx(x,y)]<18||life[idx(x,y)]%12!==0)return;
+    let total=0;for(let yy=-6;yy<=6;yy++)for(let xx=-6;xx<=6;xx++)if(inside(x+xx,y+yy)&&grid[idx(x+xx,y+yy)]===product)total++;
+    if(total>=max)return;
+    const spots=[[0,1],[-1,0],[1,0],[0,-1],[-1,1],[1,1],[-1,-1],[1,-1]];
+    for(let n=spots.length-1;n>0;n--){const j=Math.floor(Math.random()*(n+1)),q=spots[n];spots[n]=spots[j];spots[j]=q}
+    for(const [dx,dy] of spots){const nx=x+dx,ny=y+dy;if(inside(nx,ny)&&sources.includes(grid[idx(nx,ny)])){set(nx,ny,product);return}}
+  }
   function updateCell(x,y){const i=idx(x,y),v=grid[i];if(!v)return;life[i]++;
     if(!movementEnabled[v])return;
     if(!reactionEnabled[v]){if([SAND,SALT,SOIL,POWDER,SNOW,SEED,FUSE,BOMB,SULFUR,COPPER_ORE,ANTIMATTER].includes(v))updatePowder(x,y);else if([WATER,OIL,ACID,LAVA,SLIME,MUD,MERCURY,CONCRETE].includes(v))updateLiquid(x,y,v===WATER||v===OIL||v===MERCURY?5:2);else if([STEAM,SMOKE,FOAM,CLOUD,FIRE].includes(v))updateGas(x,y);return}
@@ -77,11 +85,12 @@
     if(v===VIRUS){const immune=[EMPTY,VIRUS,VOID,RAINBOW,GLASS,METAL,OBSIDIAN];for(let yy=-1;yy<=1;yy++)for(let xx=-1;xx<=1;xx++){if(!inside(x+xx,y+yy))continue;const q=idx(x+xx,y+yy);if(!immune.includes(grid[q])&&chance(.035))set(x+xx,y+yy,VIRUS)}if(life[i]>450&&chance(.03))grid[i]=EMPTY;return}
     if(v===ANTIMATTER){for(let yy=-2;yy<=2;yy++)for(let xx=-2;xx<=2;xx++){if(!inside(x+xx,y+yy)||(xx===0&&yy===0))continue;const q=idx(x+xx,y+yy);if(grid[q]!==EMPTY&&grid[q]!==ANTIMATTER&&chance(.3)){grid[q]=EMPTY;grid[i]=chance(.35)?LIGHTNING:EMPTY;return}}updatePowder(x,y);return}
     if(v===CONCRETE){if(life[i]<90)updateLiquid(x,y,1);return}
-    if(v===QUARTZITE){if(reactionEnabled[v]&&near(x,y,LAVA)&&life[i]>mineralTime*1.4){grid[i]=CRYSTAL;life[i]=0}return}
-    if(v===BASALT){if(reactionEnabled[v]&&near(x,y,ACID)&&chance(.004)){grid[i]=SAND;life[i]=0}return}
+    if(v===OBSIDIAN){growReactionPatch(x,y,OBSIDIAN,[LAVA]);return}
+    if(v===QUARTZITE){growReactionPatch(x,y,QUARTZITE,[SAND]);if(reactionEnabled[v]&&near(x,y,LAVA)&&life[i]>mineralTime*1.4){grid[i]=CRYSTAL;life[i]=0}return}
+    if(v===BASALT){growReactionPatch(x,y,BASALT,[SOIL,LAVA]);if(reactionEnabled[v]&&near(x,y,ACID)&&chance(.004)){grid[i]=SAND;life[i]=0}return}
     if(v===SULFUR){if(reactionEnabled[v]&&hot(x,y)){grid[i]=FIRE;life[i]=18;return}updatePowder(x,y);return}
     if(v===COPPER_ORE){if(reactionEnabled[v]&&near(x,y,ACID)&&life[i]>mineralTime*.6){grid[i]=METAL;life[i]=0;return}updatePowder(x,y);return}
-    if(v===CRYSTAL){if(reactionEnabled[v]&&near(x,y,LIGHTNING)&&chance(.12))set(x,y,SPARK);return}
+    if(v===CRYSTAL){growReactionPatch(x,y,CRYSTAL,[QUARTZITE,SALT]);if(reactionEnabled[v]&&near(x,y,LIGHTNING)&&chance(.12))set(x,y,SPARK);return}
   }
   function step(){tick++;const reverse=tick%2;for(let y=H-1;y>=0;y--){if(reverse){for(let x=0;x<W;x++)updateCell(x,y)}else{for(let x=W-1;x>=0;x--)updateCell(x,y)}}}
   function render(){const img=ctx.createImageData(W,H),d=img.data;count=0;for(let i=0;i<N;i++){const v=grid[i];if(v)count++;let hex=color[v],n=parseInt(hex.slice(1),16);let r=n>>16,g=n>>8&255,b=n&255;if(v===RAINBOW){const h=(i*7+tick*4)%360;r=255*Math.abs(Math.sin(h*.017));g=255*Math.abs(Math.sin((h+120)*.017));b=255*Math.abs(Math.sin((h+240)*.017))}if(v===FIRE){const heat=Math.min(1,life[i]/55);r=255;g=190-heat*135;b=45-heat*35}const noise=((i*13+v*17)%9)-4;if(v!==EMPTY&&v!==LIGHTNING){r+=noise;g+=noise;b+=noise}d[i*4]=r;d[i*4+1]=g;d[i*4+2]=b;d[i*4+3]=255}ctx.putImageData(img,0,0);document.querySelector('#stats').textContent=`${count.toLocaleString()} particles · ${W}×${H}`}
